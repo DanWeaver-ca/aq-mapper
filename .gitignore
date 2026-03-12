@@ -1,0 +1,35 @@
+# macOS
+.DS_Store
+
+# Flutter/Dart
+aq_mapping_app/.dart_tool/
+aq_mapping_app/.packages
+aq_mapping_app/build/
+aq_mapping_app/.flutter-plugins
+aq_mapping_app/.flutter-plugins-dependencies
+aq_mapping_app/pubspec.lock
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# iOS
+aq_mapping_app/ios/Pods/
+aq_mapping_app/ios/.symlinks/
+aq_mapping_app/ios/Flutter/Flutter.framework
+aq_mapping_app/ios/Flutter/Flutter.podspec
+aq_mapping_app/ios/Flutter/Generated.xcconfig
+aq_mapping_app/ios/Flutter/app.flx
+aq_mapping_app/ios/Flutter/flutter_export_environment.sh
+aq_mapping_app/ios/ServiceDefinitions.json
+
+# Android
+aq_mapping_app/android/.gradle/
+aq_mapping_app/android/local.properties
+aq_mapping_app/android/key.properties
+*.jks
+*.keystore
+
+# Config workaround
+.config/
