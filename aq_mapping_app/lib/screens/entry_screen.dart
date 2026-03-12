@@ -112,52 +112,75 @@ class _EntryScreenState extends State<EntryScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      // Scaffold resizes body above keyboard — combined with Column layout
+      // this keeps the Save button always visible just above the keyboard.
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: const Text('Add Measurement'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
+      // Tap anywhere outside a field to dismiss the keyboard
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: SafeArea(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _buildLocationCard(),
-              const SizedBox(height: 16),
-              _buildSensorField(_pm25Controller, 'PM2.5', 'ug/m3'),
-              _buildSensorField(_pm10Controller, 'PM10', 'ug/m3'),
-              _buildSensorField(_co2Controller, 'CO2', 'ppm'),
-              _buildSensorField(_hchoController, 'HCHO', 'mg/m3'),
-              _buildSensorField(_tempController, 'Temperature', 'C'),
-              _buildSensorField(_humidityController, 'Humidity', '%'),
-              const SizedBox(height: 8),
-              TextFormField(
-                controller: _notesController,
-                decoration: const InputDecoration(
-                  labelText: 'Notes (optional)',
-                  hintText: 'e.g., near parking lot, windy',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 2,
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                height: 52,
-                child: ElevatedButton(
-                  onPressed: _isSaving ? null : _saveMeasurement,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+              // ── Scrollable field area ─────────────────────────────────
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildLocationCard(),
+                        const SizedBox(height: 16),
+                        _buildSensorField(_pm25Controller, 'PM2.5', 'ug/m3'),
+                        _buildSensorField(_pm10Controller, 'PM10', 'ug/m3'),
+                        _buildSensorField(_co2Controller, 'CO2', 'ppm'),
+                        _buildSensorField(_hchoController, 'HCHO', 'mg/m3'),
+                        _buildSensorField(_tempController, 'Temperature', 'C'),
+                        _buildSensorField(_humidityController, 'Humidity', '%'),
+                        const SizedBox(height: 8),
+                        TextFormField(
+                          controller: _notesController,
+                          decoration: const InputDecoration(
+                            labelText: 'Notes (optional)',
+                            hintText: 'e.g., near parking lot, windy',
+                            border: OutlineInputBorder(),
+                          ),
+                          maxLines: 2,
+                          // Extra scroll padding so Notes field clears the
+                          // Save button when focused
+                          scrollPadding: const EdgeInsets.only(bottom: 80),
+                        ),
+                      ],
                     ),
                   ),
-                  child: _isSaving
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text(
-                          'Save Measurement',
-                          style: TextStyle(fontSize: 18),
-                        ),
+                ),
+              ),
+              // ── Save button — always visible above keyboard ───────────
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: ElevatedButton(
+                    onPressed: _isSaving ? null : _saveMeasurement,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.teal,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: _isSaving
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text(
+                            'Save Measurement',
+                            style: TextStyle(fontSize: 18),
+                          ),
+                  ),
                 ),
               ),
             ],

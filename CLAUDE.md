@@ -59,3 +59,22 @@ CSV output columns from device: DATE, PM2.5(ug/m3), PM10(ug/m3), PARTICLES(per/L
 - UTSC campus coordinates: 43.7841, -79.1873
 - Students explore indoor (classrooms, food court) and outdoor (forest, roads) locations
 - Lab documents are in `lab_documents/` directory
+
+## Current Status (as of 2026-03-11)
+- ✅ Full app scaffolded and running in iOS Simulator (iPhone 17, iOS 26.3)
+- ✅ All screens implemented: Home, Entry (form), Map, Export
+- ✅ Entry screen keyboard/scroll layout fixed: Save button pinned above keyboard, fields scroll freely
+- ✅ CocoaPods installed and configured (`ios/Podfile` present)
+- ✅ Git repository initialized with initial commit
+- ⏳ Not yet tested on physical iPhone 16 Pro (next session)
+
+## Next Steps (priority order)
+1. **Test on iPhone 16 Pro** — connect via USB, set signing team in Xcode (Runner → Signing & Capabilities → Team), trust cert on device
+2. **Map variable selector** — add segmented control/chip row at top of map to switch which variable colors the markers (PM2.5, PM10, CO2, HCHO, Temp, Humidity). Grey markers when no data for selected variable. Thresholds per variable:
+   - PM2.5: green ≤12, orange ≤35, deep orange ≤55, red >55 µg/m³
+   - PM10: green ≤25, orange ≤50, deep orange ≤100, red >100 µg/m³
+   - CO2: green ≤800, orange ≤1000, deep orange ≤1500, red >1500 ppm
+   - HCHO: green ≤0.04, orange ≤0.08, deep orange ≤0.1, red >0.1 mg/m³
+   - Temperature & Humidity: comfort-based scales
+3. **Android build** — test APK on Android device once iOS is stable
+4. **App icon + name** — replace default Flutter icon with something AQ-themed
