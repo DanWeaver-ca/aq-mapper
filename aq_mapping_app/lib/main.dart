@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'app_config.dart';
 import 'screens/home_screen.dart';
 
 void main() {
@@ -12,7 +13,7 @@ class AQMappingApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'AQ Mapper',
+      title: appTitle,
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorSchemeSeed: Colors.teal,

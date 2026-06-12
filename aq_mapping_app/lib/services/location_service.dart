@@ -1,6 +1,17 @@
 import 'package:geolocator/geolocator.dart';
 
 class LocationService {
+  /// The OS's cached last fix, if any — instant, no permission prompt, no
+  /// GPS wait. Returns null when unavailable. Useful for centering the map
+  /// without blocking.
+  Future<Position?> getLastKnownPosition() async {
+    try {
+      return await Geolocator.getLastKnownPosition();
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<Position> getCurrentPosition() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
