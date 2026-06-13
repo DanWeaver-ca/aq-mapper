@@ -87,6 +87,51 @@ void main() {
     expect(remaining.single.source, 'local');
   });
 
+  test('importMany merges several groups and aggregates counts', () async {
+    final g11 = fullMeasurement().copyWith(
+        uid: 'g11-1', groupName: 'Birch', deviceId: 'UTSC-AQMS-11');
+    final g12 = fullMeasurement().copyWith(
+        uid: 'g12-1', groupName: 'Cedar', deviceId: 'UTSC-AQMS-12');
+    final export = CsvExportService();
+
+    final result = await CsvImportService(service).importMany([
+      (name: 'group11.csv', content: export.buildCsv([g11])),
+      (name: 'group12.csv', content: export.buildCsv([g12])),
+      // group11 sent again — every row is a cross-file duplicate.
+      (name: 'group11_again.csv', content: export.buildCsv([g11])),
+    ]);
+
+    expect(result.files, 3);
+    expect(result.imported, 2);
+    expect(result.duplicates, 1);
+    expect(result.errors, 0);
+    expect(result.failures, isEmpty);
+
+    final groups =
+        (await service.getAllMeasurements()).map((m) => m.groupName).toSet();
+    expect(groups, {'Birch', 'Cedar'});
+  });
+
+  test('importMany skips a bad file but still imports the good ones',
+      () async {
+    final good = fullMeasurement().copyWith(uid: 'good-1', groupName: 'Elm');
+    const temtopCsv =
+        'DATE,PM2.5(ug/m3),PM10(ug/m3),PARTICLES(per/L),CO2(ppm),'
+        'HCHO(mg/m3),TEMPERATURE,HUMIDITY(%),TEMPUNIT\n'
+        '2025-07-11 10:08:02,014.7,024.8,2311,487,0.051,020.7,075.3,C\n';
+
+    final result = await CsvImportService(service).importMany([
+      (name: 'elm.csv', content: CsvExportService().buildCsv([good])),
+      (name: 'raw_device.csv', content: temtopCsv),
+    ]);
+
+    expect(result.imported, 1);
+    expect(result.failures, hasLength(1));
+    expect(result.failures.single, contains('raw_device.csv'));
+    expect(result.failures.single, contains('Temtop'));
+    expect(await service.getAllMeasurements(), hasLength(1));
+  });
+
   test('raw Temtop device CSV is rejected with a clear message', () async {
     const temtopCsv =
         'DATE,PM2.5(ug/m3),PM10(ug/m3),PARTICLES(per/L),CO2(ppm),'

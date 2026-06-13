@@ -29,6 +29,33 @@ class _MapScreenState extends State<MapScreen> {
   bool _legendExpanded = true;
   MapVariable _variable = MapVariable.pm25;
 
+  /// Currently isolated group, or null for "all groups combined". Drives the
+  /// classroom debrief: pick one group to show just their points, or "All"
+  /// to show the whole class together.
+  String? _selectedGroup;
+
+  /// Bucket label for readings that carry no group name.
+  static const String _noGroupKey = '(no group)';
+
+  String _groupKeyOf(Measurement m) {
+    final name = m.groupName?.trim();
+    return (name == null || name.isEmpty) ? _noGroupKey : name;
+  }
+
+  /// Distinct group labels present in the data, sorted for a stable selector.
+  List<String> get _groupKeys {
+    final keys = _measurements.map(_groupKeyOf).toSet().toList()..sort();
+    return keys;
+  }
+
+  /// Measurements after applying the group filter.
+  List<Measurement> get _visibleMeasurements {
+    if (_selectedGroup == null) return _measurements;
+    return _measurements
+        .where((m) => _groupKeyOf(m) == _selectedGroup)
+        .toList();
+  }
+
   @override
   void initState() {
     super.initState();
@@ -45,6 +72,12 @@ class _MapScreenState extends State<MapScreen> {
     final measurements = await _databaseService.getAllMeasurements();
     setState(() {
       _measurements = measurements;
+      // Drop the group filter if that group is no longer present (e.g. after
+      // clearing imported data).
+      if (_selectedGroup != null &&
+          !measurements.any((m) => _groupKeyOf(m) == _selectedGroup)) {
+        _selectedGroup = null;
+      }
       _isLoading = false;
     });
     if (measurements.isEmpty) _centerOnDevice();
@@ -75,11 +108,39 @@ class _MapScreenState extends State<MapScreen> {
     _heatmapReset.add(null);
   }
 
+  void _selectGroup(String? key) {
+    setState(() => _selectedGroup = key);
+    _heatmapReset.add(null);
+    _fitToVisible();
+  }
+
+  /// Frame the map around the currently visible points so picking a group
+  /// jumps straight to where that group measured.
+  void _fitToVisible() {
+    final points = _visibleMeasurements
+        .map((m) => LatLng(m.latitude, m.longitude))
+        .toList();
+    if (points.isEmpty) return;
+    if (points.length == 1) {
+      _mapController.move(points.first, 16.0);
+      return;
+    }
+    _mapController.fitCamera(
+      CameraFit.coordinates(
+        coordinates: points,
+        padding: const EdgeInsets.all(48),
+        maxZoom: 17.0,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Map (${_measurements.length} points)'),
+        title: Text(_selectedGroup == null
+            ? 'Map (${_measurements.length} points)'
+            : '$_selectedGroup (${_visibleMeasurements.length} points)'),
         actions: [
           IconButton(
             icon: Icon(
@@ -98,6 +159,7 @@ class _MapScreenState extends State<MapScreen> {
           ? const Center(child: CircularProgressIndicator())
           : Column(
               children: [
+                if (_groupKeys.length >= 2) _buildGroupSelector(),
                 _buildVariableSelector(),
                 Expanded(
                   child: Stack(
@@ -113,6 +175,49 @@ class _MapScreenState extends State<MapScreen> {
                 ),
               ],
             ),
+    );
+  }
+
+  Widget _buildGroupSelector() {
+    final theme = Theme.of(context);
+    return Container(
+      height: 52,
+      color: theme.colorScheme.surfaceContainerHighest,
+      child: Row(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 12, right: 4),
+            child: Icon(Icons.groups,
+                size: 20, color: theme.colorScheme.onSurfaceVariant),
+          ),
+          Expanded(
+            child: ListView(
+              scrollDirection: Axis.horizontal,
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: ChoiceChip(
+                    label: Text('All groups (${_measurements.length})'),
+                    selected: _selectedGroup == null,
+                    onSelected: (_) => _selectGroup(null),
+                  ),
+                ),
+                for (final key in _groupKeys)
+                  Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ChoiceChip(
+                      label: Text(key),
+                      selected: _selectedGroup == key,
+                      onSelected: (_) => _selectGroup(key),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -157,13 +262,14 @@ class _MapScreenState extends State<MapScreen> {
         ),
         if (_showHeatmap)
           MeasurementHeatmapLayer(
-            measurements: _measurements,
+            measurements: _visibleMeasurements,
             variable: _variable,
             reset: _heatmapReset.stream,
           )
         else
           MarkerLayer(
-            markers: _measurements.map((m) => _buildMarker(m)).toList(),
+            markers:
+                _visibleMeasurements.map((m) => _buildMarker(m)).toList(),
           ),
       ],
     );

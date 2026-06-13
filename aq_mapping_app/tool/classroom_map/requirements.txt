@@ -1,0 +1,4 @@
+plotly>=5.18
+pandas>=1.5
+# kaleido is optional — only needed if you want PNG snapshots (write_image).
+# For Plotly 5.x install the matching version:  pip install "kaleido==0.2.1"

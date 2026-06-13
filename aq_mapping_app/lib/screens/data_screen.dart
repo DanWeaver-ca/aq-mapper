@@ -78,14 +78,19 @@ class _DataScreenState extends State<DataScreen> {
     try {
       final result = await _csvImportService.pickAndImport();
       if (result != null && mounted) {
+        final fileNote =
+            result.files > 1 ? ' from ${result.files} files' : '';
         final parts = <String>[
-          'Imported ${result.imported}',
+          'Imported ${result.imported}$fileNote',
           if (result.duplicates > 0)
             'skipped ${result.duplicates} duplicates',
           if (result.errors > 0) '${result.errors} bad rows',
         ];
         _showSnack(parts.join(', '),
             color: result.imported > 0 ? Colors.green : null);
+        if (result.failures.isNotEmpty) {
+          await _showFailures(result.failures);
+        }
         await _loadMeasurements();
       }
     } on CsvImportException catch (e) {
@@ -94,6 +99,25 @@ class _DataScreenState extends State<DataScreen> {
       if (mounted) _showSnack('Import failed: $e', color: Colors.red);
     }
     if (mounted) setState(() => _isImporting = false);
+  }
+
+  Future<void> _showFailures(List<String> failures) async {
+    if (!mounted) return;
+    await showDialog<void>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('${failures.length} file(s) skipped'),
+        content: SingleChildScrollView(
+          child: Text(failures.join('\n\n')),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _confirmClearImported() async {
@@ -234,7 +258,7 @@ class _DataScreenState extends State<DataScreen> {
                     label: Text(
                       _isImporting
                           ? 'Importing...'
-                          : 'Import CSV from another group',
+                          : 'Import CSVs from other groups',
                       style: const TextStyle(fontSize: 16),
                     ),
                     style: OutlinedButton.styleFrom(
@@ -246,8 +270,9 @@ class _DataScreenState extends State<DataScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Receive a CSV via AirDrop or email, save it to Files, '
-                  'then pick it here to add it to your map.',
+                  'Collect the groups\' CSVs (AirDrop, email, or a shared '
+                  'folder), then pick one or many here to merge them onto your '
+                  'map. Duplicates are skipped automatically.',
                   textAlign: TextAlign.center,
                   style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                 ),

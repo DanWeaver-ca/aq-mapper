@@ -225,10 +225,12 @@ class _CloudParticlesIcon extends StatelessWidget {
       child: Stack(
         children: [
           Icon(Icons.filter_drama, size: size, color: Colors.teal),
-          // Dots sit in the open body of the cloud outline.
-          dot(0.32, 0.48, size * 0.09, 0.8),
-          dot(0.50, 0.56, size * 0.07, 0.6),
-          dot(0.62, 0.44, size * 0.08, 0.45),
+          // Dots sit in the open body of the cloud outline, nudged left so the
+          // leftmost dot clears the inner arc. Kept in sync with the launcher
+          // icon art in tool/icon/make_icon.py.
+          dot(0.25, 0.48, size * 0.09, 0.8),
+          dot(0.43, 0.56, size * 0.07, 0.6),
+          dot(0.55, 0.44, size * 0.08, 0.45),
         ],
       ),
     );

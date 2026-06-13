@@ -50,6 +50,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  # In-memory SQLite for migration/dedup tests (not shipped in the app).
   sqflite_common_ffi: ^2.3.0
 
   # The "flutter_lints" package below contains a set of recommended lints to
@@ -58,6 +59,21 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^6.0.0
+
+  # Generates platform launcher icons from assets/icon/ (see flutter_launcher_icons block below).
+  # Regenerate after editing the source PNGs with:  dart run flutter_launcher_icons
+  flutter_launcher_icons: ^0.14.1
+
+# Launcher icon config. Source art is rendered by tool/icon/make_icon.py to match
+# the in-app _CloudParticlesIcon (teal filter_drama cloud + particle dots).
+flutter_launcher_icons:
+  image_path: "assets/icon/app_icon.png"
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  background_color_ios: "#ffffff"
+  adaptive_icon_background: "#E0F2F1"
+  adaptive_icon_foreground: "assets/icon/app_icon_foreground.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
