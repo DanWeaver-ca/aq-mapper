@@ -1,10 +1,10 @@
-import 'dart:io';
 import 'dart:ui';
 import 'package:csv/csv.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:share_plus/share_plus.dart';
 import 'package:intl/intl.dart';
 import '../models/measurement.dart';
+import 'csv_export_platform.dart'
+    if (dart.library.io) 'csv_export_platform_io.dart'
+    if (dart.library.js_interop) 'csv_export_platform_web.dart';
 
 class CsvExportService {
   /// Builds the CSV text (header + rows). Pure, so tests can use it without
@@ -17,28 +17,19 @@ class CsvExportService {
     return const ListToCsvConverter().convert(rows);
   }
 
-  Future<String> exportToCsv(
+  /// Exports the measurements and hands the file to the user: the native
+  /// share sheet on mobile, a browser download on web. [shareOrigin] anchors
+  /// the iOS share popover (required on newer iOS).
+  Future<void> exportAndShare(
     List<Measurement> measurements, {
     String? deviceId,
+    Rect? shareOrigin,
   }) async {
-    final csvData = buildCsv(measurements);
-    final directory = await getApplicationDocumentsDirectory();
+    final csv = buildCsv(measurements);
     final dateStr = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
     // Device-prefixed filename so the instructor can tell groups' files apart.
-    final prefix = (deviceId == null || deviceId.isEmpty) ? 'aq' : 'aq_$deviceId';
-    final filePath = '${directory.path}/${prefix}_$dateStr.csv';
-    final file = File(filePath);
-    await file.writeAsString(csvData);
-    return filePath;
-  }
-
-  /// [sharePositionOrigin] anchors the iOS share sheet; newer iOS versions
-  /// throw a PlatformException when it is missing.
-  Future<void> shareCsv(String filePath, {Rect? sharePositionOrigin}) async {
-    await Share.shareXFiles(
-      [XFile(filePath)],
-      subject: 'Air Quality Measurements',
-      sharePositionOrigin: sharePositionOrigin,
-    );
+    final prefix =
+        (deviceId == null || deviceId.isEmpty) ? 'aq' : 'aq_$deviceId';
+    await deliverCsv(csv, '${prefix}_$dateStr.csv', shareOrigin: shareOrigin);
   }
 }

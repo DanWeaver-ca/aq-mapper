@@ -1,0 +1,51 @@
+name: Deploy AQ Mapper web to GitHub Pages
+
+# Builds the Flutter web app and publishes it to GitHub Pages on every push to
+# main. One-time setup in the repo: Settings -> Pages -> Source -> "GitHub
+# Actions". The site appears at https://<user>.github.io/<repo>/.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'aq_mapping_app/**'
+      - '.github/workflows/deploy-web.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: aq_mapping_app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.41.4'
+      - run: flutter pub get
+      # base-href must match the repo name for a project page (…/<repo>/).
+      - run: flutter build web --release --base-href "/${GITHUB_REPOSITORY#*/}/"
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: aq_mapping_app/build/web
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -62,11 +62,11 @@ class _DataScreenState extends State<DataScreen> {
     setState(() => _isExporting = true);
     try {
       final deviceId = await _sessionService.deviceId;
-      final filePath = await _csvExportService.exportToCsv(
+      await _csvExportService.exportAndShare(
         _measurements,
         deviceId: deviceId,
+        shareOrigin: origin,
       );
-      await _csvExportService.shareCsv(filePath, sharePositionOrigin: origin);
     } catch (e) {
       if (mounted) _showSnack('Export failed: $e', color: Colors.red);
     }

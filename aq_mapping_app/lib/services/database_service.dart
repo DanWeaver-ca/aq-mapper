@@ -23,8 +23,11 @@ class DatabaseService {
   }
 
   Future<Database> _initDatabase() async {
-    final dbPath = await getDatabasesPath();
-    final path = join(dbPath, 'aq_measurements.db');
+    // On web the FFI backend keys storage by the database name (IndexedDB);
+    // there is no filesystem path to join.
+    final path = kIsWeb
+        ? 'aq_measurements.db'
+        : join(await getDatabasesPath(), 'aq_measurements.db');
     return await openDatabase(
       path,
       version: 2,

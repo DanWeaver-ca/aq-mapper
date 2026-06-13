@@ -1,8 +1,6 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:csv/csv.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart';
 import '../models/measurement.dart';
 import '../services/database_service.dart';
 
@@ -106,13 +104,12 @@ class CsvImportService {
     );
   }
 
-  /// Reads a picked file as text from its in-memory bytes (works on web),
-  /// falling back to its path on platforms that stream from disk.
+  /// Reads a picked file as text from its in-memory bytes. The picker is
+  /// called with withData:true, so bytes are populated on every platform
+  /// (this keeps the importer free of dart:io so it compiles for web).
   Future<String> _readFile(PlatformFile file) async {
     final bytes = file.bytes;
     if (bytes != null) return utf8.decode(bytes, allowMalformed: true);
-    final path = file.path;
-    if (path != null && !kIsWeb) return File(path).readAsString();
     throw CsvImportException('Could not read ${file.name}.');
   }
 

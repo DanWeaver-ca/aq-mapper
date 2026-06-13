@@ -46,6 +46,8 @@ dependencies:
   shared_preferences: ^2.3.0
   file_picker: ^8.0.0
   flutter_map_heatmap: ^0.0.8
+  sqflite_common_ffi_web: ^1.1.1
+  web: ^1.1.1
 
 dev_dependencies:
   flutter_test:
@@ -74,6 +76,11 @@ flutter_launcher_icons:
   background_color_ios: "#ffffff"
   adaptive_icon_background: "#E0F2F1"
   adaptive_icon_foreground: "assets/icon/app_icon_foreground.png"
+  web:
+    generate: true
+    image_path: "assets/icon/app_icon.png"
+    background_color: "#E0F2F1"
+    theme_color: "#009688"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
