@@ -28,7 +28,7 @@ jobs:
       run:
         working-directory: aq_mapping_app
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -36,7 +36,7 @@ jobs:
       - run: flutter pub get
       # base-href must match the repo name for a project page (…/<repo>/).
       - run: flutter build web --release --base-href "/${GITHUB_REPOSITORY#*/}/"
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: aq_mapping_app/build/web
 
@@ -48,4 +48,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
