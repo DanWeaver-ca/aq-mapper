@@ -15,6 +15,13 @@ import sys
 import pandas as pd
 import plotly.graph_objects as go
 import plotly.express as px
+from plotly.subplots import make_subplots
+
+# Toolbar config: a high-res "download as image" camera button so the
+# instructor can save the current map view straight into slides/reports.
+IMG_CONFIG = {"displaylogo": False,
+              "toImageButtonOptions": {"format": "png", "scale": 2,
+                                       "filename": "utsc_class_map"}}
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 csv_dir = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, "sample_csvs")
@@ -167,7 +174,7 @@ fig.update_layout(
 )
 
 map_html = os.path.join(out_dir, "classroom_map.html")
-fig.write_html(map_html, include_plotlyjs="inline")
+fig.write_html(map_html, include_plotlyjs="inline", config=IMG_CONFIG)
 print("wrote", map_html)
 
 # --- PM2.5 density heatmap (all groups) ----------------------------------
@@ -178,15 +185,59 @@ heat = px.density_mapbox(
     title="UTSC PM2.5 density — all groups")
 heat.update_layout(margin=dict(l=0, r=0, t=58, b=0))
 heat_html = os.path.join(out_dir, "classroom_heatmap.html")
-heat.write_html(heat_html, include_plotlyjs="inline")
+heat.write_html(heat_html, include_plotlyjs="inline", config=IMG_CONFIG)
 print("wrote", heat_html)
 
-# --- optional static snapshots (needs kaleido; instructors don't need it) -
+# --- summary-stats panel for the debrief ---------------------------------
+# Indoor-vs-outdoor bars for the two headline pollutants + a per-group means
+# table. Gives the *story* to narrate over the map.
+def setting_mean(col, setting):
+    sel = df[df["LOCATION_TYPE"] == setting][col]
+    return round(float(sel.mean()), 1) if len(sel) else None
+
+stats = make_subplots(
+    rows=2, cols=2,
+    specs=[[{"type": "xy"}, {"type": "xy"}],
+           [{"type": "table", "colspan": 2}, None]],
+    row_heights=[0.42, 0.58], vertical_spacing=0.12,
+    subplot_titles=("PM2.5 — indoor vs outdoor (µg/m³)",
+                    "CO₂ — indoor vs outdoor (ppm)", ""))
+for ci, col in enumerate(["PM2.5(ug/m3)", "CO2(ppm)"], start=1):
+    stats.add_trace(go.Bar(
+        x=["Outdoor", "Indoor"],
+        y=[setting_mean(col, "outdoor"), setting_mean(col, "indoor")],
+        marker_color=["#2196F3", "#E64A19"], text=[setting_mean(col, "outdoor"),
+        setting_mean(col, "indoor")], textposition="outside", cliponaxis=False,
+        showlegend=False), row=1, col=ci)
+
+gstats = df.groupby("GROUP")
+header = ["Group", "n"] + [v["label"] for v in VARS]
+cells = [list(groups), [int(gstats.size()[g]) for g in groups]]
+for v in VARS:
+    cells.append([round(float(gstats[v["col"]].mean()[g]), 1) for g in groups])
+stats.add_trace(go.Table(
+    header=dict(values=header, fill_color="#00695C",
+                font=dict(color="white", size=12), align="center"),
+    cells=dict(values=cells, align="center",
+               fill_color=[["#f3f8f7", "white"] * len(groups)])), row=2, col=1)
+stats.update_layout(
+    title=dict(text="UTSC Air Quality — class summary", x=0.5, xanchor="center"),
+    margin=dict(l=10, r=10, t=70, b=10), height=640)
+stats_html = os.path.join(out_dir, "classroom_stats.html")
+stats.write_html(stats_html, include_plotlyjs="inline", config=IMG_CONFIG)
+print("wrote", stats_html)
+
+# --- optional static exports (need kaleido; instructors don't) -----------
+# A PNG + a vector PDF of the map for slides/reports, plus snapshots.
 try:
     fig.write_image(os.path.join(out_dir, "classroom_map.png"),
                     width=1200, height=820, scale=2)
+    fig.write_image(os.path.join(out_dir, "classroom_map.pdf"),
+                    width=1200, height=820)
     heat.write_image(os.path.join(out_dir, "classroom_heatmap.png"),
                      width=1200, height=820, scale=2)
-    print("wrote PNG snapshots")
+    stats.write_image(os.path.join(out_dir, "classroom_stats.png"),
+                      width=1200, height=820, scale=2)
+    print("wrote PNG/PDF exports")
 except Exception as e:
-    print("PNG export skipped (kaleido not required):", str(e)[:80])
+    print("Image export skipped (kaleido not required):", str(e)[:80])

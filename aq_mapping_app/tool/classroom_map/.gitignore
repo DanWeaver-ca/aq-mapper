@@ -1,7 +1,9 @@
 # Generated map outputs (rebuilt by build_map.py)
 classroom_map.html
 classroom_heatmap.html
+classroom_stats.html
 *.png
+*.pdf
 # Real student CSVs dropped in for class — keep out of version control
 csvs/*
 !csvs/.gitkeep

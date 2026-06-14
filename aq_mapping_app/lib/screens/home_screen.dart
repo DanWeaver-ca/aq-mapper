@@ -124,6 +124,15 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         SizedBox(height: isLandscape ? 20 : 32),
                         ..._buildNavArea(isLandscape),
+                        const SizedBox(height: 16),
+                        Text(
+                          'v$appVersion',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.grey[400],
+                          ),
+                        ),
                       ],
                     ),
                   ),

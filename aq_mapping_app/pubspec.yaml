@@ -48,6 +48,7 @@ dependencies:
   flutter_map_heatmap: ^0.0.8
   sqflite_common_ffi_web: ^1.1.1
   web: ^1.1.1
+  http: ^1.6.0
 
 dev_dependencies:
   flutter_test:
@@ -92,6 +93,11 @@ flutter:
   # included with your application, so that you can use the icons in
   # the material Icons class.
   uses-material-design: true
+
+  assets:
+    # Pre-downloaded OpenStreetMap tiles for the UTSC campus so the map works
+    # offline in the field. Regenerate with tool/download_campus_tiles.py.
+    - assets/tiles/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

@@ -4,6 +4,10 @@ import 'package:latlong2/latlong.dart';
 /// rebranded for other campuses or outreach events with one-line edits.
 const String appTitle = 'Air Quality Mapper';
 
+/// Shown small in the UI so you can tell which build a student is running.
+/// Bump when distributing a new version.
+const String appVersion = '1.0.0';
+
 /// Last-resort map center when there are no measurements and GPS is
 /// unavailable (UTSC campus). The map prefers measurement locations, then
 /// the device's own location.

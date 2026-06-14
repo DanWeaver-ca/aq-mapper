@@ -10,6 +10,7 @@ import '../models/measurement.dart';
 import '../services/database_service.dart';
 import '../services/location_service.dart';
 import '../widgets/heatmap_layer.dart';
+import '../widgets/offline_first_tile_provider.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -259,6 +260,9 @@ class _MapScreenState extends State<MapScreen> {
         TileLayer(
           urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
           userAgentPackageName: 'com.utsc.aq.aq_mapping_app',
+          // Serve bundled campus tiles first (offline-capable in the field),
+          // falling back to the live server elsewhere.
+          tileProvider: OfflineFirstTileProvider(),
         ),
         if (_showHeatmap)
           MeasurementHeatmapLayer(

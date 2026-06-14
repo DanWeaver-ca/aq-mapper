@@ -108,14 +108,18 @@ Students use **personal phones, mixed iOS + Android**, with **no institutional A
 - ✅ App improvements retained: map **group filter** (All / per-group, auto-fits camera), **multi-file CSV import** (pick many at once; web/desktop-safe via in-memory bytes; per-file failure reporting)
 - ✅ **Classroom hub pivoted to Python/Plotly** (`tool/classroom_map/`): merges CSVs, group + indoor/outdoor + variable filters, app-matched band colours, density heatmap, double-click launchers, README. Verified against synthetic data (all-groups + isolated-group renders). Flutter macOS-desktop hub experiment rolled back.
 - ✅ AQ-themed launcher icon wired for iOS + Android (see App Icon above)
-- ✅ **Web/PWA target added** (see Student Distribution): conditional DB factory + CSV export, branded PWA, GitHub Pages workflow. `flutter build web` succeeds; runs locally. Not yet pushed to GitHub or tested on a real iPhone.
-- ✅ `flutter analyze` clean, 45 tests passing
-- ✅ Tested on physical iPhone (native, per user); ⏳ icon + web build not yet re-verified on device
+- ✅ **Web/PWA target — DEPLOYED LIVE** at `https://danweaver-ca.github.io/aq-mapper/` (repo `DanWeaver-ca/aq-mapper`, public, GitHub Actions → Pages). Conditional DB factory + CSV export, branded PWA.
+- ✅ **Polish round (2026-06-14):**
+  - **Offline campus tiles** — 128 OSM tiles for UTSC pre-bundled as `assets/tiles/<z>_<x>_<y>.png` (zooms 14–17, ~2MB) via `tool/download_campus_tiles.py`; served by `widgets/offline_first_tile_provider.dart` (asset-first, network fallback) so the map works offline in the field.
+  - **Hub summary-stats panel** (`classroom_stats.html`) + one-click map image export (toolbar camera + PNG/PDF via kaleido).
+  - **Data-safety reminder** banner on the Data screen + **version label** (`appVersion` in `app_config.dart`) on the home screen.
+  - **Root `README.md` + MIT `LICENSE`**; **student QR + handout** (`tool/student_handout/`).
+- ✅ `flutter analyze` clean, 45 tests passing; `flutter build web` succeeds with tiles bundled
+- ⏳ Offline tiles, data-safety banner, and the whole web build **not yet verified on a real iPhone** — the iOS Safari spike is still the gate
 
 ## Next Steps (priority order)
-1. **Push to GitHub + enable Pages** — create a public repo, `git push`, Settings → Pages → Source = "GitHub Actions"; the workflow deploys to `https://<user>.github.io/<repo>/`
-2. **iOS Safari spike (the de-risk)** — open the deployed URL on a real iPhone: location permission → enter a reading → appears on map; Add to Home Screen; reopen from icon; export downloads a CSV; confirm data persists. This is where the web plan could disappoint
-3. **Hub dry run with real data** — export a few phones' CSVs into `tool/classroom_map/csvs/`, run the launcher, rehearse the "here's group N → all groups" debrief
+1. **iOS Safari spike (the de-risk)** — open the live URL on a real iPhone: location permission → enter a reading → appears on map; pan the campus offline (airplane mode) to confirm bundled tiles draw; Add to Home Screen; reopen from icon; export downloads a CSV; confirm data persists. This is where the web plan could still disappoint
+2. **Push the latest polish** — `git push` to deploy the offline tiles + reminders (auto-deploys via Actions)
+3. **Hub dry run with real data** — export a few phones' CSVs into `tool/classroom_map/csvs/`, run the launcher, rehearse the "here's group N → all groups → stats" debrief
 4. **Re-verify icon on iPhone** (native build) — rebuild/reinstall (delete app first due to iOS icon caching)
 5. **Phase 2 — local-LAN sync** — small Flask server on the instructor's laptop/hotspot; a "Sync to class" push so the projected map fills as groups return
-6. **Possible enhancement** — student "export before you leave" reminder in the web app (mitigates iOS storage eviction)

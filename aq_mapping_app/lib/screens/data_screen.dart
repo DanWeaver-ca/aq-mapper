@@ -180,6 +180,34 @@ class _DataScreenState extends State<DataScreen> {
     }
   }
 
+  /// A standing reminder that the device is the only copy of the readings —
+  /// important on the web build, where browser storage can be cleared.
+  Widget _exportReminder() {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.amber.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.amber.shade300),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.warning_amber_rounded, color: Colors.amber.shade800),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              'This device holds the only copy of your readings. Export your '
+              'CSV before you finish — clearing the browser or app can erase '
+              'them.',
+              style: TextStyle(fontSize: 13, color: Colors.brown.shade800),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -213,7 +241,9 @@ class _DataScreenState extends State<DataScreen> {
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.grey[600]),
                 ),
-                const SizedBox(height: 28),
+                const SizedBox(height: 20),
+                if (_localCount > 0) _exportReminder(),
+                const SizedBox(height: 8),
                 SizedBox(
                   height: 52,
                   child: ElevatedButton.icon(

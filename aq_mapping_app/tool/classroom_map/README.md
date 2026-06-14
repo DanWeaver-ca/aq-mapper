@@ -15,6 +15,13 @@ Colours and thresholds match the phone app's legend bands exactly
   - **Colour by ▾**: PM2.5 / PM10 / CO₂ / HCHO / Temp / Humidity.
   - Hover any point for all of its readings.
 - **`classroom_heatmap.html`** — PM2.5 density heatmap of all groups.
+- **`classroom_stats.html`** — summary panel: indoor-vs-outdoor averages for
+  PM2.5 and CO₂, plus a per-group means table (the *story* for the debrief).
+
+**Save a map for slides:** in any of the HTML views, click the camera icon in
+the top-right toolbar to download the current view as a PNG. (If you have the
+optional `kaleido` package installed, `build_map.py` also writes
+`classroom_map.png/.pdf` and `classroom_stats.png` automatically.)
 
 Both are **self-contained HTML files** — double-click to open in any browser,
 and you can email them to students afterward. Only the map background tiles
