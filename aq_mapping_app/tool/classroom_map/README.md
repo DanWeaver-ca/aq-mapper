@@ -9,14 +9,22 @@ Colours and thresholds match the phone app's legend bands exactly
 (`lib/models/map_variable.dart`), so the projected map looks like the phones.
 
 ## What you get
-- **`classroom_map.html`** — interactive points map:
+- **`classroom_map.html`** — interactive points map on a clean basemap:
   - **Show ▾**: All groups / Outdoor / Indoor / each individual group
     (e.g. "here's Group 2", then "let's see everyone").
-  - **Colour by ▾**: PM2.5 / PM10 / CO₂ / HCHO / Temp / Humidity.
+  - **Colour by ▾**: each variable has two modes — **· health bands**
+    (absolute air-quality colours, matching the phone app) and **· spread**
+    (stretched to this dataset's range, so you can see contrast even when every
+    reading falls in one health band).
   - Hover any point for all of its readings.
 - **`classroom_heatmap.html`** — PM2.5 density heatmap of all groups.
 - **`classroom_stats.html`** — summary panel: indoor-vs-outdoor averages for
   PM2.5 and CO₂, plus a per-group means table (the *story* for the debrief).
+- **`classroom_interpolated.html`** — an IDW-estimated PM2.5 field between the
+  sample points, fading where you sampled less, with the real readings on top.
+  A teaching artifact: the smooth-but-uncertain surface mirrors how global
+  climate models fill data-sparse regions. Compare with NASA GISTEMP's
+  smoothing-radius demo (250–1200 km): https://data.giss.nasa.gov/gistemp/maps
 
 **Save a map for slides:** in any of the HTML views, click the camera icon in
 the top-right toolbar to download the current view as a PNG. (If you have the
