@@ -23,7 +23,7 @@ Colours and thresholds match the phone app's legend bands exactly
 - **`classroom_interpolated.html`** — an estimated field between the sample
   points (Gaussian-weighted), fading where you sampled less, with the real
   readings on top. The **Field · radius** dropdown selects the variable *and* a
-  smoothing radius (tight / medium / wide): widening it fills more area but with
+  smoothing radius (tight or wide): widening it fills more area but with
   more guesswork — the same trade-off as NASA GISTEMP's 250–1200 km smoothing
   (https://data.giss.nasa.gov/gistemp/maps). A teaching artifact for how global
   models handle data-sparse regions like the Arctic and oceans.

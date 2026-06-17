@@ -347,8 +347,7 @@ print("wrote", stats_html)
 # dropdown switches both variable and radius (Plotly menus can't share state,
 # and both control the same image layer, so they must live in one menu).
 spacing = median_spacing(df)
-RADII = [("tight", 0.7 * spacing), ("medium", 1.6 * spacing),
-         ("wide", 3.2 * spacing)]
+RADII = [("tight", 0.7 * spacing), ("wide", 3.2 * spacing)]
 LonG, LatG, coslat0, (latmin, latmax, lonmin, lonmax) = make_grid(
     df, pad=3.0 * RADII[-1][1])
 COORDS = [[lonmin, latmax], [lonmax, latmax], [lonmax, latmin], [lonmin, latmin]]
@@ -367,7 +366,7 @@ def img_layer(col, rkey):
                  coordinates=COORDS)]
 
 
-dft, dfr = VARS[0], "medium"
+dft, dfr = VARS[0], "tight"
 dlo, dhi = ranges[dft["col"]]
 interp = go.Figure(go.Scattermapbox(
     lat=df["LATITUDE"], lon=df["LONGITUDE"], mode="markers",
