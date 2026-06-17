@@ -19,7 +19,7 @@ device, shown on a colour-coded OpenStreetMap with a legend and heatmap, and
 exported as CSV. The campus map tiles are pre-bundled so the map works offline
 in the field. The same codebase also builds native iOS/Android.
 
-### 2. The classroom map (`aq_mapping_app/tool/classroom_map/`)
+### 2. The classroom map (`classroom_map/`)
 A standalone **Python/Plotly** tool the instructor runs on a laptop (Windows or
 Mac). It merges every group's exported CSV and produces:
 - an interactive map filtered by group / indoor / outdoor and coloured by any
@@ -27,7 +27,7 @@ Mac). It merges every group's exported CSV and produces:
 - a PM2.5 density heatmap,
 - a summary-stats panel (indoor-vs-outdoor averages + per-group table).
 
-See `aq_mapping_app/tool/classroom_map/README.md` and the step-by-step
+See `classroom_map/README.md` and the step-by-step
 `Classroom_Map_Guide.docx` for setup.
 
 ## Tech

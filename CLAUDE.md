@@ -16,7 +16,13 @@ A Flutter mobile app (iOS + Android) for UTSC air quality lab activities. Up to 
 
 ## Project Structure
 ```
-aq_mapping_app/
+AQ_mobile_app/                         # repo root — two products + supporting material:
+  aq_mapping_app/                      # (1) the Flutter app — ONE codebase, builds iOS + Android + web
+  classroom_map/                       # (2) Python/Plotly debrief tool (instructor's laptop)
+  student_handout/                     # student QR code + printable handout
+  lab_documents/   docs/               # lab sheets / Temtop reference ; project briefs
+
+aq_mapping_app/                        # —— the Flutter app, in detail ——
   lib/
     main.dart                          # App entry point, Material 3 theme
     app_config.dart                    # Branding (app title) + default map center — edit here
@@ -86,8 +92,8 @@ Sample device export: `lab_documents/Temtop sensor/Temtop_test_20250711.csv`
 - Lab documents are in `lab_documents/` directory
 
 ## Classroom Aggregation (end goal) — the hub is a separate Python tool
-The debrief outcome is a projected map showing one group's points ("here's group 24") and all groups combined. **Decision (pivoted 2026-06-13): the classroom hub is a standalone Python/Plotly script, NOT a Flutter desktop build.** It lives in `aq_mapping_app/tool/classroom_map/` and reads the phone app's CSV exports. Rationale: runs identically on the instructor's Windows work laptop and Mac with just `pip install` (no Visual Studio/Xcode/Flutter desktop toolchain), is ~a few hundred lines the instructor can maintain, and outputs self-contained HTML to project and share with students. The Flutter codebase stays **phone-app-only**.
-- The hub: `build_map.py` merges a folder of CSVs (dedup by UID), renders `classroom_map.html` (Show dropdown: All/Outdoor/Indoor/per-group; Colour-by dropdown: PM2.5/PM10/CO2/HCHO/Temp/Humidity) plus a PM2.5 density `classroom_heatmap.html`. Band colours/thresholds mirror `lib/models/map_variable.dart` (the `VARS` list — keep in sync). `make_sample_data.py` makes synthetic UTSC data. Double-click `run_windows.bat` / `run_mac.command`. See `tool/classroom_map/README.md`.
+The debrief outcome is a projected map showing one group's points ("here's group 24") and all groups combined. **Decision (pivoted 2026-06-13): the classroom hub is a standalone Python/Plotly script, NOT a Flutter desktop build.** It lives in `classroom_map/` (repo root) and reads the phone app's CSV exports. Rationale: runs identically on the instructor's Windows work laptop and Mac with just `pip install` (no Visual Studio/Xcode/Flutter desktop toolchain), is ~a few hundred lines the instructor can maintain, and outputs self-contained HTML to project and share with students. The Flutter codebase stays **phone-app-only**.
+- The hub lives at repo root in **`classroom_map/`** (moved out of the Flutter app 2026-06-17). `build_map.py` merges a folder of CSVs (dedup by UID), renders `classroom_map.html` (Show dropdown: All/Outdoor/Indoor/per-group; Colour-by dropdown: PM2.5/PM10/CO2/HCHO/Temp/Humidity) plus a PM2.5 density `classroom_heatmap.html`. Band colours/thresholds mirror `aq_mapping_app/lib/models/map_variable.dart` (the `VARS` list — keep in sync). `make_sample_data.py` makes synthetic UTSC data. Double-click `run_windows.bat` / `run_mac.command`. See `classroom_map/README.md`.
 - Constraints unchanged: student devices are **mixed iOS + Android**; tiles need wifi but Plotly JS is inlined. Transport today = collect CSVs (AirDrop/email/shared folder) into `csvs/`.
 - **Phase 2 (future)** = the laptop hosts a local-LAN endpoint (e.g. a small Flask server — easy now that the hub is Python) so phones push readings over the instructor's hotspot and the map fills as groups return; campus-wide live while roaming is out of scope.
 - The Flutter app keeps a **map group filter** (`map_screen.dart`) and **multi-file CSV import** (`csv_import_service.dart`) — useful on-device, retained after the pivot. The earlier macOS-desktop hub experiment was rolled back.
@@ -106,7 +112,7 @@ Students use **personal phones, mixed iOS + Android**, with **no institutional A
 ## Current Status (as of 2026-06-16)
 - ✅ Complete revision: session setup, entry form (± variability, indoor/outdoor, hard/soft validation, edit mode), history, map (variable selector + legend + heatmap + imported borders), Temtop-aligned CSV, import/merge with uid dedup, DB schema v2 + migration
 - ✅ App improvements retained: map **group filter** (All / per-group, auto-fits camera), **multi-file CSV import** (pick many at once; web/desktop-safe via in-memory bytes; per-file failure reporting)
-- ✅ **Classroom hub pivoted to Python/Plotly** (`tool/classroom_map/`): merges CSVs, group + indoor/outdoor + variable filters, app-matched band colours, density heatmap, double-click launchers, README. Verified against synthetic data (all-groups + isolated-group renders). Flutter macOS-desktop hub experiment rolled back.
+- ✅ **Classroom hub pivoted to Python/Plotly** (`classroom_map/` at repo root): merges CSVs, group + indoor/outdoor + variable filters, app-matched band colours, density heatmap, double-click launchers, README. Verified against synthetic data (all-groups + isolated-group renders). Flutter macOS-desktop hub experiment rolled back.
 - ✅ AQ-themed launcher icon wired for iOS + Android (see App Icon above)
 - ✅ **Web/PWA target — DEPLOYED LIVE** at `https://danweaver-ca.github.io/aq-mapper/` (repo `DanWeaver-ca/aq-mapper`, public, GitHub Actions → Pages). Conditional DB factory + CSV export, branded PWA.
 - ✅ **Polish round (2026-06-14):**
@@ -114,13 +120,15 @@ Students use **personal phones, mixed iOS + Android**, with **no institutional A
   - **Hub summary-stats panel** (`classroom_stats.html`) + one-click map image export (toolbar camera + PNG/PDF via kaleido).
   - **Hub map-viz upgrades (2026-06-16):** cleaner `carto-positron` basemap (drops OSM POI clutter); per-variable **"health bands" vs "spread"** colour modes (spread stretches to the robust 5–95th-pctile range, fixing the wash-out when readings cluster in one band); **`classroom_interpolated.html`** — a Gaussian-weighted estimated field (viridis, faded by distance to nearest sample) with points overlaid, framed as the sparse-data lesson (cf. NASA GISTEMP smoothing radius — see [[gistemp-smoothing-radius]] memory). One combined **Field · radius** dropdown selects both the variable (6 species) and a smoothing radius (tight/wide); widening fills more area = more coverage, more guesswork. Generous bbox padding avoids a hard image-edge boundary. Verified on Dan's real 2-phone/11-point export.
   - **Data-safety reminder** banner on the Data screen + **version label** (`appVersion` in `app_config.dart`) on the home screen.
-  - **Root `README.md` + MIT `LICENSE`**; **student QR + handout** (`tool/student_handout/`).
+  - **Root `README.md` + MIT `LICENSE`**; **student QR + handout** (`student_handout/`).
 - ✅ `flutter analyze` clean, 45 tests passing; `flutter build web` succeeds with tiles bundled
 - ✅ **Real-device tested (2026-06-16):** the live web app worked on Dan's iPhone on campus (GPS, offline tiles, persistence, export) and on a technician's Android phone; both exports merged in the hub. The hub's full viz suite (group filter, health/spread colouring, stats, density heatmap, interpolated field) verified on the real 2-phone/11-point export.
   - Caveat seen: the technician's Android reported a coarse cell-tower location (~1.4km off) — students with imprecise / "Precise Location off" settings will produce off-target points. Mitigation pending: a handout line to enable high-accuracy location, optionally an in-app "approximate location" warning at save time.
 
+- ✅ **Repo reorganized (2026-06-17):** the standalone Python tools moved out of the Flutter app to the repo root (`classroom_map/`, `student_handout/`); unused desktop scaffolding (`macos/windows/linux`) deleted (regenerable via `flutter create`); project briefs moved to `docs/`. The Flutter app (`aq_mapping_app/`) is unchanged and still one codebase building iOS + Android + web. The native-capable state is tagged `v1.0.0`.
+
 ## Next Steps (priority order)
-1. **Push the 4 unpushed commits** — `git push` deploys the polished web app (offline tiles, data-safety banner) to the live URL via Actions and syncs the hub changes. Until pushed, the live site is the pre-polish build.
+1. **Push the unpushed commits** — `git push` deploys the polished web app (offline tiles, data-safety banner) to the live URL via Actions and syncs the hub changes. Until pushed, the live site is the pre-polish build.
 2. **Phase 2 — local-LAN sync** — small Flask server on the instructor's laptop/hotspot; a "Sync to class" push so the projected map fills as groups return (now easy since the hub is Python)
 3. **Re-verify icon on iPhone** (native build only) — web is the primary distribution path now; native is optional
 4. *(optional)* **Outdoor-only interpolation** — `classroom_interpolated.html` currently interpolates all points; a spatial field is physically meaningful only for outdoor readings (indoor = interpolating "through walls"). Filtering to outdoor would be more correct. Discussed + deferred 2026-06-16.

@@ -1,6 +1,9 @@
 # macOS
 .DS_Store
 
+# Logs
+*.log
+
 # Flutter/Dart
 aq_mapping_app/.dart_tool/
 aq_mapping_app/.packages

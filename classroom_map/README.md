@@ -6,7 +6,7 @@ send them to you; this tool merges everyone's CSVs and renders an interactive
 map you project to the class.
 
 Colours and thresholds match the phone app's legend bands exactly
-(`lib/models/map_variable.dart`), so the projected map looks like the phones.
+(`aq_mapping_app/lib/models/map_variable.dart`), so the projected map looks like the phones.
 
 ## What you get
 - **`classroom_map.html`** — interactive points map on a clean basemap:
