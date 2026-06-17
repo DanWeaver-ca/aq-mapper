@@ -103,7 +103,7 @@ Students use **personal phones, mixed iOS + Android**, with **no institutional A
 - **iOS Safari caveats (the real risk):** Add-to-Home-Screen is manual; IndexedDB can be evicted under storage pressure / ITP, so rule = **export your CSV before closing**; Safari-tab vs home-screen-icon storage are separate sandboxes. Map tiles still need wifi.
 - Build/test: `flutter build web --release`; locally serve `build/web` over http to test.
 
-## Current Status (as of 2026-06-13)
+## Current Status (as of 2026-06-16)
 - ✅ Complete revision: session setup, entry form (± variability, indoor/outdoor, hard/soft validation, edit mode), history, map (variable selector + legend + heatmap + imported borders), Temtop-aligned CSV, import/merge with uid dedup, DB schema v2 + migration
 - ✅ App improvements retained: map **group filter** (All / per-group, auto-fits camera), **multi-file CSV import** (pick many at once; web/desktop-safe via in-memory bytes; per-file failure reporting)
 - ✅ **Classroom hub pivoted to Python/Plotly** (`tool/classroom_map/`): merges CSVs, group + indoor/outdoor + variable filters, app-matched band colours, density heatmap, double-click launchers, README. Verified against synthetic data (all-groups + isolated-group renders). Flutter macOS-desktop hub experiment rolled back.
@@ -116,11 +116,12 @@ Students use **personal phones, mixed iOS + Android**, with **no institutional A
   - **Data-safety reminder** banner on the Data screen + **version label** (`appVersion` in `app_config.dart`) on the home screen.
   - **Root `README.md` + MIT `LICENSE`**; **student QR + handout** (`tool/student_handout/`).
 - ✅ `flutter analyze` clean, 45 tests passing; `flutter build web` succeeds with tiles bundled
-- ⏳ Offline tiles, data-safety banner, and the whole web build **not yet verified on a real iPhone** — the iOS Safari spike is still the gate
+- ✅ **Real-device tested (2026-06-16):** the live web app worked on Dan's iPhone on campus (GPS, offline tiles, persistence, export) and on a technician's Android phone; both exports merged in the hub. The hub's full viz suite (group filter, health/spread colouring, stats, density heatmap, interpolated field) verified on the real 2-phone/11-point export.
+  - Caveat seen: the technician's Android reported a coarse cell-tower location (~1.4km off) — students with imprecise / "Precise Location off" settings will produce off-target points. Mitigation pending: a handout line to enable high-accuracy location, optionally an in-app "approximate location" warning at save time.
 
 ## Next Steps (priority order)
-1. **iOS Safari spike (the de-risk)** — open the live URL on a real iPhone: location permission → enter a reading → appears on map; pan the campus offline (airplane mode) to confirm bundled tiles draw; Add to Home Screen; reopen from icon; export downloads a CSV; confirm data persists. This is where the web plan could still disappoint
-2. **Push the latest polish** — `git push` to deploy the offline tiles + reminders (auto-deploys via Actions)
-3. **Hub dry run with real data** — export a few phones' CSVs into `tool/classroom_map/csvs/`, run the launcher, rehearse the "here's group N → all groups → stats" debrief
-4. **Re-verify icon on iPhone** (native build) — rebuild/reinstall (delete app first due to iOS icon caching)
-5. **Phase 2 — local-LAN sync** — small Flask server on the instructor's laptop/hotspot; a "Sync to class" push so the projected map fills as groups return
+1. **Push the 4 unpushed commits** — `git push` deploys the polished web app (offline tiles, data-safety banner) to the live URL via Actions and syncs the hub changes. Until pushed, the live site is the pre-polish build.
+2. **Phase 2 — local-LAN sync** — small Flask server on the instructor's laptop/hotspot; a "Sync to class" push so the projected map fills as groups return (now easy since the hub is Python)
+3. **Re-verify icon on iPhone** (native build only) — web is the primary distribution path now; native is optional
+4. *(optional)* **Outdoor-only interpolation** — `classroom_interpolated.html` currently interpolates all points; a spatial field is physically meaningful only for outdoor readings (indoor = interpolating "through walls"). Filtering to outdoor would be more correct. Discussed + deferred 2026-06-16.
+5. *(optional, classroom prep)* add a "Group 01…25" naming convention for students so the hub's group dropdown sorts cleanly; remind students to enable precise location.
