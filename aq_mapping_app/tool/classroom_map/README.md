@@ -20,11 +20,13 @@ Colours and thresholds match the phone app's legend bands exactly
 - **`classroom_heatmap.html`** — PM2.5 density heatmap of all groups.
 - **`classroom_stats.html`** — summary panel: indoor-vs-outdoor averages for
   PM2.5 and CO₂, plus a per-group means table (the *story* for the debrief).
-- **`classroom_interpolated.html`** — an IDW-estimated PM2.5 field between the
-  sample points, fading where you sampled less, with the real readings on top.
-  A teaching artifact: the smooth-but-uncertain surface mirrors how global
-  climate models fill data-sparse regions. Compare with NASA GISTEMP's
-  smoothing-radius demo (250–1200 km): https://data.giss.nasa.gov/gistemp/maps
+- **`classroom_interpolated.html`** — an estimated field between the sample
+  points (Gaussian-weighted), fading where you sampled less, with the real
+  readings on top. The **Field · radius** dropdown selects the variable *and* a
+  smoothing radius (tight / medium / wide): widening it fills more area but with
+  more guesswork — the same trade-off as NASA GISTEMP's 250–1200 km smoothing
+  (https://data.giss.nasa.gov/gistemp/maps). A teaching artifact for how global
+  models handle data-sparse regions like the Arctic and oceans.
 
 **Save a map for slides:** in any of the HTML views, click the camera icon in
 the top-right toolbar to download the current view as a PNG. (If you have the

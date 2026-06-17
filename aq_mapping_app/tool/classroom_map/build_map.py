@@ -104,48 +104,62 @@ def viridis_rgb(norm):
     return out.astype(np.uint8)
 
 
-def idw_field(df, col, gridn=200, power=2):
-    """Inverse-distance-weighted surface over the data bbox, plus the distance
-    to the nearest sample at each grid cell (used to fade out where we sampled
-    less). Distances use a cos(lat) correction so they're roughly metric."""
+GRIDN = 160  # interpolation grid resolution
+
+
+def _coords(df):
+    p = df.dropna(subset=["LATITUDE", "LONGITUDE"])
+    return (p["LATITUDE"].to_numpy(float), p["LONGITUDE"].to_numpy(float),
+            float(np.cos(np.radians(p["LATITUDE"].mean()))))
+
+
+def median_spacing(df):
+    """Median nearest-neighbour distance of the samples (cos-lat scaled) — the
+    natural unit for the smoothing radius, robust to a lone outlier."""
+    lat, lon, coslat0 = _coords(df)
+    if len(lat) < 2:
+        return 0.003
+    P = np.column_stack([lon * coslat0, lat])
+    nn = [np.sqrt(((P - P[i]) ** 2).sum(1))[np.arange(len(P)) != i].min()
+          for i in range(len(P))]
+    return float(np.median(nn))
+
+
+def make_grid(df, pad):
+    """A lat/lon grid over the data, padded by `pad` (cos-lat scaled) so the
+    field can fade fully to transparent before the image edge (no hard
+    boundary)."""
+    lat, lon, coslat0 = _coords(df)
+    plat, plon = pad, pad / coslat0
+    latmin, latmax = lat.min() - plat, lat.max() + plat
+    lonmin, lonmax = lon.min() - plon, lon.max() + plon
+    glat = np.linspace(latmax, latmin, GRIDN)   # row 0 = north
+    glon = np.linspace(lonmin, lonmax, GRIDN)
+    LonG, LatG = np.meshgrid(glon, glat)
+    return LonG, LatG, coslat0, (latmin, latmax, lonmin, lonmax)
+
+
+def gaussian_field(df, col, r, LonG, LatG, coslat0):
+    """Gaussian-weighted interpolation with smoothing radius `r` (the GISTEMP
+    analogue): each sample's influence ~ exp(-(d/r)^2). Larger r → smoother and
+    wider coverage. Returns the field and a fade mask (transparent where the
+    nearest sample is well beyond r)."""
     p = df.dropna(subset=[col, "LATITUDE", "LONGITUDE"])
     lat = p["LATITUDE"].to_numpy(float)
     lon = p["LONGITUDE"].to_numpy(float)
     z = pd.to_numeric(p[col], errors="coerce").to_numpy(float)
-    dlat = (lat.max() - lat.min()) or 0.002
-    dlon = (lon.max() - lon.min()) or 0.002
-    m = 0.15
-    latmin, latmax = lat.min() - dlat * m, lat.max() + dlat * m
-    lonmin, lonmax = lon.min() - dlon * m, lon.max() + dlon * m
-    glat = np.linspace(latmax, latmin, gridn)   # row 0 = north
-    glon = np.linspace(lonmin, lonmax, gridn)
-    LonG, LatG = np.meshgrid(glon, glat)
-    coslat = np.cos(np.radians(LatG))
-    num = np.zeros_like(LatG)
-    den = np.zeros_like(LatG)
-    nearest = np.full_like(LatG, np.inf)
+    num = np.zeros_like(LonG)
+    den = np.zeros_like(LonG)
+    nearest = np.full_like(LonG, np.inf)
     for la, lo, zz in zip(lat, lon, z):
-        dx = (LonG - lo) * coslat
-        dy = (LatG - la)
-        dist = np.sqrt(dx * dx + dy * dy)
-        nearest = np.minimum(nearest, dist)
-        w = 1.0 / (dist ** power + 1e-12)
+        d = np.sqrt(((LonG - lo) * coslat0) ** 2 + (LatG - la) ** 2)
+        nearest = np.minimum(nearest, d)
+        w = np.exp(-(d / r) ** 2)
         num += w * zz
         den += w
-    field = num / den
-    # Fade radius ≈ the median nearest-neighbour spacing of the samples — robust
-    # to a lone outlier, so the surface hugs where we actually measured and the
-    # empty bbox around it goes transparent (no hard rectangle edge).
-    coslat0 = np.cos(np.radians(lat.mean()))
-    P = np.column_stack([lon * coslat0, lat])
-    if len(P) > 1:
-        nn = [np.sqrt(((P - P[i]) ** 2).sum(1))[np.arange(len(P)) != i].min()
-              for i in range(len(P))]
-        spacing = float(np.median(nn))
-    else:
-        spacing = max(dlat, dlon) * 0.3
-    fade = np.exp(-(nearest / (1.8 * spacing)) ** 2)
-    return field, fade, (latmin, latmax, lonmin, lonmax)
+    field = num / np.where(den > 0, den, 1)
+    fade = np.exp(-(nearest / (1.3 * r)) ** 2)
+    return field, fade
 
 
 def field_datauri(field, fade, lo, hi):
@@ -327,34 +341,75 @@ stats_html = os.path.join(out_dir, "classroom_stats.html")
 stats.write_html(stats_html, include_plotlyjs="inline", config=IMG_CONFIG)
 print("wrote", stats_html)
 
-# --- interpolated (IDW) field --------------------------------------------
-INTERP = VARS[0]  # PM2.5
-field, fade, (latmin, latmax, lonmin, lonmax) = idw_field(df, INTERP["col"])
-lo, hi = robust_range(df[INTERP["col"]])
-uri = field_datauri(field, fade, lo, hi)
+# --- interpolated field (variable + smoothing-radius selectable) ---------
+# Gaussian interpolation à la GISTEMP: a "smoothing radius" knob (tight/medium/
+# wide) shows how sparse points fill more area as you widen it. One combined
+# dropdown switches both variable and radius (Plotly menus can't share state,
+# and both control the same image layer, so they must live in one menu).
+spacing = median_spacing(df)
+RADII = [("tight", 0.7 * spacing), ("medium", 1.6 * spacing),
+         ("wide", 3.2 * spacing)]
+LonG, LatG, coslat0, (latmin, latmax, lonmin, lonmax) = make_grid(
+    df, pad=3.0 * RADII[-1][1])
+COORDS = [[lonmin, latmax], [lonmax, latmax], [lonmax, latmin], [lonmin, latmin]]
+
+ranges = {v["col"]: robust_range(df[v["col"]]) for v in VARS}
+images = {}  # (col, radius_key) -> data-URI of the rendered field
+for v in VARS:
+    lo, hi = ranges[v["col"]]
+    for rkey, r in RADII:
+        fld, fade = gaussian_field(df, v["col"], r, LonG, LatG, coslat0)
+        images[(v["col"], rkey)] = field_datauri(fld, fade, lo, hi)
+
+
+def img_layer(col, rkey):
+    return [dict(sourcetype="image", source=images[(col, rkey)], below="",
+                 coordinates=COORDS)]
+
+
+dft, dfr = VARS[0], "medium"
+dlo, dhi = ranges[dft["col"]]
 interp = go.Figure(go.Scattermapbox(
     lat=df["LATITUDE"], lon=df["LONGITUDE"], mode="markers",
-    marker=dict(size=11, color=df[INTERP["col"]], coloraxis="coloraxis"),
+    marker=dict(size=11, color=df[dft["col"]], coloraxis="coloraxis"),
     customdata=df[HOVER_COLS].values, hovertemplate=HOVER, name=""))
+
+field_buttons, active_idx, i = [], 0, 0
+for v in VARS:
+    lo, hi = ranges[v["col"]]
+    for rkey, _ in RADII:
+        if v is dft and rkey == dfr:
+            active_idx = i
+        field_buttons.append(dict(
+            label=f"{v['label']} · {rkey}", method="update",
+            args=[{"marker.color": [df[v["col"]].tolist()]},
+                  {"mapbox.layers": img_layer(v["col"], rkey),
+                   "coloraxis.cmin": lo, "coloraxis.cmax": hi,
+                   "coloraxis.colorbar.title.text": f"{v['label']}<br>{v['unit']}"}]))
+        i += 1
+
 interp.update_layout(
     mapbox=dict(style=BASEMAP, center=ctr, zoom=14.6,
-                layers=[dict(sourcetype="image", source=uri, below="",
-                             coordinates=[[lonmin, latmax], [lonmax, latmax],
-                                          [lonmax, latmin], [lonmin, latmin]])]),
-    coloraxis=dict(colorscale=VIRIDIS, cmin=lo, cmax=hi,
+                layers=img_layer(dft["col"], dfr)),
+    coloraxis=dict(colorscale=VIRIDIS, cmin=dlo, cmax=dhi,
                    colorbar=dict(title=dict(
-                       text=f"{INTERP['label']}<br>{INTERP['unit']}"),
+                       text=f"{dft['label']}<br>{dft['unit']}"),
                        thickness=16, len=0.7)),
-    margin=dict(l=0, r=0, t=52, b=42),
-    title=dict(text=f"UTSC {INTERP['label']} — interpolated field (estimated)",
+    updatemenus=[dict(buttons=field_buttons, active=active_idx, x=0.01,
+                      xanchor="left", y=0.99, yanchor="top", bgcolor="white",
+                      bordercolor="#bbb", showactive=True)],
+    margin=dict(l=0, r=0, t=52, b=46),
+    title=dict(text="UTSC — interpolated field (estimated)",
                x=0.5, xanchor="center"),
-    annotations=[dict(
-        text="Smooth colour = an estimate (IDW) of the field between our sample "
-             "points; it fades where we sampled less. Real models face the same "
-             "gap over data-sparse regions like the Arctic and oceans. Dots = "
-             "actual readings.",
-        x=0.5, xref="paper", y=0, yref="paper", yanchor="top",
-        showarrow=False, font=dict(size=11, color="#555"))])
+    annotations=[
+        dict(text="Field · radius", x=0.01, xref="paper", y=1.0, yref="paper",
+             yanchor="bottom", showarrow=False, font=dict(size=11, color="#666")),
+        dict(text="Smooth colour = estimated field between samples; widening the "
+                  "radius (tight→wide) fills more area but with more guesswork — "
+                  "exactly the trade-off in NASA GISTEMP's 250→1200 km smoothing. "
+                  "Dots = real readings.",
+             x=0.5, xref="paper", y=0, yref="paper", yanchor="top",
+             showarrow=False, font=dict(size=11, color="#555"))])
 interp_html = os.path.join(out_dir, "classroom_interpolated.html")
 interp.write_html(interp_html, include_plotlyjs="inline", config=IMG_CONFIG)
 print("wrote", interp_html)
