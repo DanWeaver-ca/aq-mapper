@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
+import '../app_config.dart';
 import '../models/measurement.dart';
 
 class ImportCounts {
@@ -22,12 +23,18 @@ class DatabaseService {
     return _database!;
   }
 
+  /// Database file name, namespaced by [storageKey] so same-origin
+  /// deployments (see app_config.dart) don't share data. Empty key keeps the
+  /// original name, preserving existing installs' data.
+  static String get databaseFileName =>
+      storageKey.isEmpty ? 'aq_measurements.db' : 'aq_measurements_$storageKey.db';
+
   Future<Database> _initDatabase() async {
     // On web the FFI backend keys storage by the database name (IndexedDB);
     // there is no filesystem path to join.
     final path = kIsWeb
-        ? 'aq_measurements.db'
-        : join(await getDatabasesPath(), 'aq_measurements.db');
+        ? databaseFileName
+        : join(await getDatabasesPath(), databaseFileName);
     return await openDatabase(
       path,
       version: 2,

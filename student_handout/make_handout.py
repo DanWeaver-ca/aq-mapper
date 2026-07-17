@@ -2,8 +2,10 @@
 
 Run:  python3 make_handout.py
 Outputs aq_mapper_qr.png and AQ_Mapper_Student_Handout.docx in this folder.
-Edit APP_URL / wording here and re-run.
+The app URL comes from /deploy.config.json (APP_URL) so a fork's handout
+automatically points at its own deployment; edit wording here and re-run.
 """
+import json
 import os
 import qrcode
 from docx import Document
@@ -13,7 +15,13 @@ from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-APP_URL = "https://danweaver-ca.github.io/aq-mapper/"
+_CONFIG = os.environ.get("AQ_CONFIG",
+                         os.path.join(HERE, "..", "deploy.config.json"))
+try:
+    with open(_CONFIG, encoding="utf-8") as _fh:
+        APP_URL = json.load(_fh)["APP_URL"]
+except Exception:
+    APP_URL = "https://danweaver-ca.github.io/aq-mapper/"
 QR_PNG = os.path.join(HERE, "aq_mapper_qr.png")
 DOCX = os.path.join(HERE, "AQ_Mapper_Student_Handout.docx")
 TEAL = "#009688"

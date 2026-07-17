@@ -7,6 +7,7 @@ the live tile server for anything not pre-downloaded. Re-run to refresh/extend.
 
 Usage:  python3 download_campus_tiles.py
 """
+import json
 import math
 import os
 import time
@@ -16,16 +17,27 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(HERE, "..", "assets", "tiles")
 os.makedirs(OUT, exist_ok=True)
 
-# Campus bounding box (a bit beyond UTSC: woods, valley, roads) and the zoom
-# levels students actually use. 18 is omitted to keep the bundle small (~2MB);
-# add it here if you want building-level detail offline.
-LAT_MIN, LAT_MAX = 43.776, 43.793
-LON_MIN, LON_MAX = -79.198, -79.176
+# Campus bounding box and contact come from /deploy.config.json (TILES_BBOX:
+# latMin,latMax,lonMin,lonMax — pick it a bit beyond campus: woods, valley,
+# roads). Zooms are the levels students actually use; 18 is omitted to keep
+# the bundle small (~2MB) — add it if you want building-level detail offline.
+_CONFIG = os.environ.get("AQ_CONFIG",
+                         os.path.join(HERE, "..", "..", "deploy.config.json"))
+try:
+    with open(_CONFIG, encoding="utf-8") as _fh:
+        _cfg = json.load(_fh)
+    LAT_MIN, LAT_MAX, LON_MIN, LON_MAX = [
+        float(v) for v in _cfg["TILES_BBOX"].split(",")]
+    _contact = _cfg.get("INSTRUCTOR_EMAIL", "unknown")
+except Exception:
+    LAT_MIN, LAT_MAX = 43.776, 43.793
+    LON_MIN, LON_MAX = -79.198, -79.176
+    _contact = "UTSC"
 ZOOMS = [14, 15, 16, 17]
 TILE_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png"
 # OSM tile policy requires a descriptive User-Agent; this is a one-time, small,
 # bounded download for an educational app — well within fair use.
-UA = "AQMapper-UTSC-campus-precache/1.0 (educational; contact UTSC)"
+UA = f"AQMapper-campus-precache/1.0 (educational; contact {_contact})"
 
 
 def deg2tile(lat, lon, z):

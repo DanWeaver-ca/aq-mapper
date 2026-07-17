@@ -1,0 +1,14 @@
+{
+  "APP_TITLE": "Air Quality Mapper",
+  "APP_SHORT_NAME": "AQ Mapper",
+  "INSTITUTION": "University of Toronto Scarborough",
+  "EVENT_TITLE": "UTSC Air Quality",
+  "INSTRUCTOR_EMAIL": "dan.weaver@utoronto.ca",
+  "CAMPUS_LAT": "43.7841",
+  "CAMPUS_LON": "-79.1873",
+  "DEVICE_ID_PREFIX": "UTSC-AQMS-",
+  "DEVICE_COUNT": "25",
+  "SENSOR_NAME": "Temtop",
+  "APP_URL": "https://danweaver-ca.github.io/aq-mapper/",
+  "TILES_BBOX": "43.776,43.793,-79.198,-79.176"
+}

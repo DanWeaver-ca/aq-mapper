@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../app_config.dart';
 import '../services/session_service.dart';
 
 /// One-time session setup: group name + sensor device ID + temperature unit.
@@ -15,8 +16,8 @@ class SessionSetupScreen extends StatefulWidget {
 
 class _SessionSetupScreenState extends State<SessionSetupScreen> {
   static const _customDeviceOption = 'Other…';
-  static final _standardDevices = List.generate(
-      25, (i) => 'UTSC-AQMS-${(i + 1).toString().padLeft(2, '0')}');
+  // Derived from deploy.config.json (DEVICE_ID_PREFIX / DEVICE_COUNT).
+  static final _standardDevices = standardDeviceIds();
 
   final _formKey = GlobalKey<FormState>();
   final _sessionService = SessionService();
@@ -90,7 +91,7 @@ class _SessionSetupScreenState extends State<SessionSetupScreen> {
                   children: [
                     Text(
                       'Enter your group name and the ID printed on your '
-                      'Temtop sensor. These are attached to every '
+                      '$sensorName sensor. These are attached to every '
                       'measurement you record.',
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),

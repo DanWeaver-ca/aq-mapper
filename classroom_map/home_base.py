@@ -25,6 +25,7 @@ import argparse
 import base64
 import glob
 import io
+import json
 import os
 import sys
 from datetime import datetime
@@ -40,6 +41,20 @@ from plotly.subplots import make_subplots
 from PIL import Image
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+
+
+def _default_title():
+    """Header title from /deploy.config.json (EVENT_TITLE) when the repo is
+    present; the hub also runs standalone (folder copied to a laptop), so
+    fall back to the UTSC reference title. --title always wins."""
+    path = os.environ.get("AQ_CONFIG",
+                          os.path.join(HERE, "..", "deploy.config.json"))
+    try:
+        with open(path, encoding="utf-8") as fh:
+            return json.load(fh).get("EVENT_TITLE") or "UTSC Air Quality"
+    except Exception:
+        return "UTSC Air Quality"
+
 
 # A clean, low-clutter basemap so the data points stand out (the detailed OSM
 # style scatters parking/transit markers that compete with the readings).
@@ -574,8 +589,9 @@ def main(argv=None):
     ap.add_argument("--roster", metavar="FILE",
                     help="checklist expects the group names in FILE "
                          "(one per line; overrides --expect)")
-    ap.add_argument("--title", default="UTSC Air Quality",
-                    help="event title shown in the header")
+    ap.add_argument("--title", default=_default_title(),
+                    help="event title shown in the header "
+                         "(default: EVENT_TITLE from deploy.config.json)")
     args = ap.parse_args(argv)
 
     df, n_ok, skipped = load_folder(args.csv_dir)

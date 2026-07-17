@@ -5,9 +5,13 @@ carry Temtop M2000+ sensors around campus, log readings into a phone app that
 auto-captures GPS, and then the class data is merged and projected on a map for
 the debrief.
 
-**▶ Live student app: https://danweaver-ca.github.io/aq-mapper/**
+**▶ Live student app (UTSC): https://danweaver-ca.github.io/aq-mapper/**
 (Open on a phone, then *Add to Home Screen*. Works on iOS and Android — no app
 store, no install.)
+
+**▶ Generic demo (try it / fork it): https://danweaver-ca.github.io/aq-mapper/demo/**
+— the same app with placeholder branding and isolated storage, rebuilt from
+[`deploy.config.demo.json`](deploy.config.demo.json) on every push.
 
 ## Two parts
 
@@ -47,6 +51,13 @@ flutter run            # mobile
 flutter build web      # web/PWA (deployed automatically on push to main)
 ```
 Project notes and design decisions live in `CLAUDE.md`.
+
+## Adapt it for your institution
+Everything institution-specific lives in one file: fork, edit
+[`deploy.config.json`](deploy.config.json) (names, campus coordinates,
+instructor email, sensor-ID scheme) in the GitHub editor, enable Pages —
+**[SETUP.md](SETUP.md)** walks through it in ~15 minutes, no local tools
+needed.
 
 ## License
 MIT — see [LICENSE](LICENSE). Reuse and adapt for your own outreach or campus.

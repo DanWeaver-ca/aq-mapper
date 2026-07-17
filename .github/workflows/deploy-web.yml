@@ -9,6 +9,8 @@ on:
     branches: [main]
     paths:
       - 'aq_mapping_app/**'
+      - 'deploy.config.json'
+      - 'deploy.config.demo.json'
       - '.github/workflows/deploy-web.yml'
   workflow_dispatch:
 
@@ -29,16 +31,34 @@ jobs:
         working-directory: aq_mapping_app
     steps:
       - uses: actions/checkout@v6
+      # Institution configs: validate both (fail fast on typos). The site is
+      # built twice into one Pages artifact — the institution deployment at
+      # the site root and a generic, storage-isolated demo under /demo/.
+      - run: python3 tool/check_config.py ../deploy.config.json
+      - run: python3 tool/check_config.py ../deploy.config.demo.json
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
           flutter-version: '3.41.4'
       - run: flutter pub get
-      # base-href must match the repo name for a project page (…/<repo>/).
-      - run: flutter build web --release --base-href "/${GITHUB_REPOSITORY#*/}/"
+      # base-href must match the repo name for a project page (…/<repo>/);
+      # the patch step stamps the web shell (it can't read dart-defines) and
+      # the dart-define file carries the branding into the app itself.
+      - name: Build institution deployment (site root)
+        run: |
+          python3 tool/patch_web_shell.py ../deploy.config.json
+          flutter build web --release --base-href "/${GITHUB_REPOSITORY#*/}/" --dart-define-from-file=../deploy.config.json
+          mkdir -p ../_site
+          cp -R build/web/. ../_site/
+      - name: Build generic demo (site /demo/)
+        run: |
+          python3 tool/patch_web_shell.py ../deploy.config.demo.json
+          flutter build web --release --base-href "/${GITHUB_REPOSITORY#*/}/demo/" --dart-define-from-file=../deploy.config.demo.json
+          mkdir -p ../_site/demo
+          cp -R build/web/. ../_site/demo/
       - uses: actions/upload-pages-artifact@v5
         with:
-          path: aq_mapping_app/build/web
+          path: _site
 
   deploy:
     needs: build

@@ -1,0 +1,15 @@
+{
+  "APP_TITLE": "AQ Mapper — Demo",
+  "APP_SHORT_NAME": "AQ Demo",
+  "INSTITUTION": "Example University",
+  "EVENT_TITLE": "Example University Air Quality",
+  "INSTRUCTOR_EMAIL": "instructor@example.edu",
+  "CAMPUS_LAT": "43.6534",
+  "CAMPUS_LON": "-79.3841",
+  "DEVICE_ID_PREFIX": "AQ-",
+  "DEVICE_COUNT": "8",
+  "SENSOR_NAME": "Temtop",
+  "APP_URL": "https://danweaver-ca.github.io/aq-mapper/demo/",
+  "TILES_BBOX": "43.646,43.660,-79.395,-79.373",
+  "STORAGE_KEY": "demo"
+}

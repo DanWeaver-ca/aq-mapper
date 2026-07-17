@@ -230,7 +230,126 @@ Real-world CSV handling — emailed files get opened and resaved in Excel:
 
 ---
 
-## 6. Suggested milestones
+## 6. One-file institution setup (`deploy.config.json`) — planned 2026-07-17
+
+**Goal:** an adopting instructor forks the repo, edits **one JSON file in the
+GitHub web editor** (no local tooling), enables Pages, and gets a fully
+rebranded deployment: their campus as the map home, their institution name in
+the app and PWA install banner, their email under "Send to instructor", their
+sensor-ID scheme in the dropdown, and a handout QR pointing at their URL.
+
+### Where institution values live today (the problem)
+
+| File | Values |
+|---|---|
+| `lib/app_config.dart` | app title, map centre, instructor email, version |
+| `lib/screens/session_setup_screen.dart` | device-ID scheme (`UTSC-AQMS-01…25`), "Temtop" wording |
+| `web/index.html` + `web/manifest.json` | PWA name, description ("…the UTSC lab"), theme colour |
+| `tool/download_campus_tiles.py` | offline-tile bounding box + contact string |
+| `student_handout/make_handout.py` | hard-coded `APP_URL` for the QR code |
+| `classroom_map/home_base.py` | `--title` default "UTSC Air Quality" |
+| `classroom_map/make_sample_data.py` | synthetic-data campus coordinates + device names |
+
+Seven files; a fork today means hunting all of them.
+
+### Design: one flat JSON at repo root, consumed three ways
+
+**`deploy.config.json`** (committed; Dan's values are the reference deployment):
+
+```json
+{
+  "APP_TITLE": "Air Quality Mapper",
+  "INSTITUTION": "University of Toronto Scarborough",
+  "EVENT_TITLE": "UTSC Air Quality",
+  "INSTRUCTOR_EMAIL": "dan.weaver@utoronto.ca",
+  "CAMPUS_LAT": "43.7841",
+  "CAMPUS_LON": "-79.1873",
+  "DEVICE_ID_PREFIX": "UTSC-AQMS-",
+  "DEVICE_COUNT": "25",
+  "SENSOR_NAME": "Temtop",
+  "APP_URL": "https://danweaver-ca.github.io/aq-mapper/",
+  "TILES_BBOX": "43.776,43.793,-79.198,-79.176"
+}
+```
+
+Flat ALL-CAPS string keys on purpose — that is exactly the shape Flutter's
+`--dart-define-from-file` consumes.
+
+1. **Flutter app — compile-time defines** (the standard mechanism, Flutter
+   ≥3.7; we're on 3.41): `app_config.dart` keeps every constant but sources it
+   from `String.fromEnvironment('APP_TITLE', defaultValue: 'Air Quality
+   Mapper')` etc.; the deploy workflow adds
+   `--dart-define-from-file=../deploy.config.json` to `flutter build web`.
+   Plain `flutter run` without the file still works on the UTSC defaults.
+   Gotchas: there is no `double.fromEnvironment` — lat/lon arrive as strings
+   and are parsed once into a `final` (not `const`) `LatLng`; `DEVICE_COUNT`
+   via `int.fromEnvironment`. The device dropdown builds from
+   `DEVICE_ID_PREFIX` + count; "Other…" free-text stays. `SENSOR_NAME` feeds
+   the session-setup wording ("the ID printed on your Temtop sensor").
+2. **Web shell — a patch step in the workflow**: `index.html`/`manifest.json`
+   can't read dart-defines, so a ~10-line Python step in `deploy-web.yml`
+   (before `flutter build web`) rewrites title/name/description on the runner
+   from the same JSON. Nothing committed changes; forks never touch the web/
+   folder.
+3. **Python tools — read the JSON directly**: `make_handout.py` takes
+   `APP_URL` (QR + link line), `home_base.py`'s `--title` default becomes
+   `EVENT_TITLE` when the file is found (CLI flag still wins),
+   `make_sample_data.py` centres its synthetic route on `CAMPUS_LAT/LON` and
+   uses `DEVICE_ID_PREFIX`, `download_campus_tiles.py` reads `TILES_BBOX`.
+   Each is a ~5-line `json.load` with the current value as fallback — the
+   hub stays copyable to a laptop without the repo.
+
+### What deliberately stays fixed
+
+- **CSV column names** (Temtop-branded headers in `measurement.dart`): they
+  are the file-format contract between app, hub, and the device's own
+  exports. Renaming them per-institution would fork the data format —
+  explicitly out of scope, with a comment saying so.
+- **Colour bands / thresholds**: health guidance, not branding.
+- **App icon + theme colour**: generic cloud, institution-neutral; swapping
+  is documented as an optional step (`tool/icon/make_icon.py`), not config.
+
+### Offline tiles are optional by design
+
+`offline_first_tile_provider.dart` is asset-first with network fallback, so a
+fork that never regenerates tiles still works everywhere with connectivity —
+the bundled UTSC tiles simply never match their map view. `SETUP.md` documents
+tile regeneration (run `download_campus_tiles.py` locally, commit the new
+PNGs) as the one optional local-tooling step, for field sites with poor
+signal. The tool's OSM user-agent contact string should also come from the
+config (tile-server policy asks for a real contact).
+
+### `SETUP.md` (repo root) — the adopter's front door
+
+Fork → edit `deploy.config.json` in the GitHub editor → Settings → Pages →
+"GitHub Actions" → wait for the green check → open your URL. Then: print the
+handout (`make_handout.py`, now pointing at your URL), set up the hub laptop
+(`classroom_map/GETTING_STARTED.md`), optional tiles/icon. Ends with a
+**verification checklist**: home screen shows your title + version; map
+centres on your campus with GPS off; device dropdown shows your IDs; your
+email sits under Send to instructor. The article points readers here.
+
+### Guardrails
+
+- **CI validation step**: parse the JSON, require all keys, `float()` the
+  coordinates, sanity-check the bbox — a typo fails the build in seconds
+  with a readable message instead of deploying a broken app.
+- **Config is public by design**: the email and coordinates end up in the
+  repo and the built JS bundle (they already do today). `SETUP.md` says so —
+  use a role/department address if that matters.
+- One new test: device-ID list derives correctly from prefix+count.
+
+### Phases & effort
+
+- **Phase 1 (v1.2, ~half a day + a deploy test):** the JSON, `app_config.dart`
+  + session-setup wiring, workflow define + patch step + validation, the four
+  Python readers, `SETUP.md`, README/CLAUDE.md pointers.
+- **Phase 2 (optional polish):** `tool/setup_wizard.py` — interactive Q&A
+  that writes the JSON and regenerates handout/QR (and tiles if asked); a
+  `THEME_COLOR` key patched into manifest + Material seed; institution name
+  shown on the session-setup screen as visible confirmation the config took.
+
+## 7. Suggested milestones
 
 **v1.1 — "article-ready"** (docs + small fixes, ~a day):
 - [ ] Commit the two pending `classroom_map/` tweaks
@@ -239,6 +358,15 @@ Real-world CSV handling — emailed files get opened and resaved in Excel:
 - [ ] README screenshots/GIF, diagram, quickstart, privacy note, CITATION.cff, CI + badges (§5)
 - [ ] Handout: Precise Location line (§3)
 - [ ] Hub: utf-8-sig + per-file error handling + pinned deps (§4)
+
+**v1.2 — "adopt-me" (§6) — implemented & tested 2026-07-17**:
+- [x] `deploy.config.json` + dart-defines in `app_config.dart` / session setup
+- [x] Workflow: `--dart-define-from-file`, web-shell patch step, JSON validation
+- [x] Python readers: handout QR, hub title, sample data, tiles bbox (`AQ_CONFIG` env override for testing)
+- [x] `SETUP.md` with verification checklist; README/CLAUDE.md pointers
+- [x] End-to-end test with a fictional school config (Northview/Ottawa): all values verified in the built app + all four python outputs
+- [x] Two deployments per push: UTSC at site root + generic demo at `/demo/` (`deploy.config.demo.json`); optional `STORAGE_KEY` namespaces on-device storage because all project pages of one GitHub account share a browser origin — isolation verified locally (session in /demo/ invisible at root)
+- [ ] *(optional, later)* setup wizard, theme colour, config echo on session screen
 
 **v2.0 — "one-tap data + live home base"**:
 - [ ] "Send to class" upload + endpoint (§1 A), configurable for LAN mode (§1 C)
