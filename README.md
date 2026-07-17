@@ -19,13 +19,14 @@ device, shown on a colour-coded OpenStreetMap with a legend and heatmap, and
 exported as CSV. The campus map tiles are pre-bundled so the map works offline
 in the field. The same codebase also builds native iOS/Android.
 
-### 2. The classroom map (`classroom_map/`)
+### 2. Home Base — the classroom dashboard (`classroom_map/`)
 A standalone **Python/Plotly** tool the instructor runs on a laptop (Windows or
-Mac). It merges every group's exported CSV and produces:
-- an interactive map filtered by group / indoor / outdoor and coloured by any
-  variable (colours match the phone app exactly),
-- a PM2.5 density heatmap,
-- a summary-stats panel (indoor-vs-outdoor averages + per-group table).
+Mac). It merges every group's exported CSV into **one self-contained
+dashboard** (`classroom_dashboard.html`) with four tabs — points map (filter by
+group / indoor / outdoor, colours matching the phone app exactly), an
+interpolated "estimated field" with a selectable smoothing radius, a PM2.5
+density heatmap, and a summary-stats panel — plus a header checklist showing
+which groups have reported and which are missing.
 
 See `classroom_map/README.md` and the step-by-step
 `Classroom_Map_Guide.docx` for setup.

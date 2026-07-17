@@ -7,11 +7,11 @@ if not exist "csvs\*.csv" (
   echo No CSVs in csvs\ - using sample data. Put real exports in csvs\ for class.
   set DIR=sample_csvs
 )
-python build_map.py %DIR%
+python home_base.py %DIR%
 if errorlevel 1 (
   echo.
   echo Build failed. Did you run:  pip install -r requirements.txt  ?
   pause
   exit /b 1
 )
-start "" classroom_map.html
+start "" classroom_dashboard.html

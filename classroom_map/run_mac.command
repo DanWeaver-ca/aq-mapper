@@ -7,5 +7,5 @@ if ! ls csvs/*.csv >/dev/null 2>&1; then
   echo "No CSVs in csvs/ — using sample data. Put real exports in csvs/ for class."
   DIR="sample_csvs"
 fi
-python3 build_map.py "$DIR" || { echo "Build failed. Did you run: pip install -r requirements.txt ?"; read -r; exit 1; }
-open classroom_map.html
+python3 home_base.py "$DIR" || { echo "Build failed. Did you run: pip install -r requirements.txt ?"; read -r; exit 1; }
+open classroom_dashboard.html

@@ -235,7 +235,7 @@ Real-world CSV handling — emailed files get opened and resaved in Excel:
 **v1.1 — "article-ready"** (docs + small fixes, ~a day):
 - [ ] Commit the two pending `classroom_map/` tweaks
 - [x] "Send to instructor" button via Web Share, **alongside** the kept file save (§1 B); `instructorEmail` in `app_config.dart` — *implemented 2026-07-17 (app v1.1.0); device matrix still to run on the deployed URL*
-- [ ] Tabbed single-file dashboard (§2 A)
+- [x] Tabbed single-file dashboard (§2 A) — *implemented 2026-07-17 as `home_base.py` → `classroom_dashboard.html`, incl. group checklist (`--expect`/`--roster`), per-file error tolerance, utf-8-sig, argparse, and the §4 MapLibre migration (`plotly>=5.24,<7`); `build_map.py` frozen as v1 reference*
 - [ ] README screenshots/GIF, diagram, quickstart, privacy note, CITATION.cff, CI + badges (§5)
 - [ ] Handout: Precise Location line (§3)
 - [ ] Hub: utf-8-sig + per-file error handling + pinned deps (§4)

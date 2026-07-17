@@ -1,5 +1,8 @@
-plotly>=5.18
+plotly>=5.24,<7
 pandas>=1.5
 pillow>=9.0
-# kaleido is optional — only needed if you want PNG snapshots (write_image).
-# For Plotly 5.x install the matching version:  pip install "kaleido==0.2.1"
+# home_base.py uses the MapLibre trace family (Scattermap/density_map, Plotly
+# >=5.24). The frozen v1 build_map.py still uses the deprecated *mapbox traces
+# — they work on Plotly 5.24–6.x with a DeprecationWarning.
+# kaleido is optional — only needed for build_map.py's PNG snapshots
+# (write_image). For Plotly 5.x:  pip install "kaleido==0.2.1"
