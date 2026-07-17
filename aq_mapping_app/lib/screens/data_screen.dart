@@ -329,27 +329,56 @@ class _DataScreenState extends State<DataScreen> {
                   style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                 ),
                 if (instructorEmail.isNotEmpty)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Flexible(
-                        child: Text(
-                          'Send to: $instructorEmail',
-                          overflow: TextOverflow.ellipsis,
+                  Container(
+                    margin: const EdgeInsets.only(top: 8),
+                    padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+                    decoration: BoxDecoration(
+                      color: Colors.teal.shade50,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.teal.shade100),
+                    ),
+                    child: Column(
+                      children: [
+                        Text(
+                          'Emailing it? The share sheet won\'t fill in the '
+                          'address — copy it here and paste it into the '
+                          '"To:" line.',
+                          textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[700],
-                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                            color: Colors.teal.shade900,
                           ),
                         ),
-                      ),
-                      IconButton(
-                        onPressed: _copyInstructorEmail,
-                        icon: const Icon(Icons.copy, size: 14),
-                        visualDensity: VisualDensity.compact,
-                        tooltip: 'Copy email address',
-                      ),
-                    ],
+                        const SizedBox(height: 4),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                instructorEmail,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.teal.shade900,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            TextButton.icon(
+                              onPressed: _copyInstructorEmail,
+                              icon: const Icon(Icons.copy, size: 16),
+                              label: const Text('Copy'),
+                              style: TextButton.styleFrom(
+                                visualDensity: VisualDensity.compact,
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 const SizedBox(height: 16),
                 if (_csvExportService.hasSeparateSave) ...[

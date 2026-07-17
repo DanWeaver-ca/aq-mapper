@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:aq_mapping_app/app_config.dart';
 import 'package:aq_mapping_app/screens/data_screen.dart';
 import 'package:aq_mapping_app/services/database_service.dart';
 
@@ -65,5 +66,19 @@ void main() {
     await pumpDataScreen(tester);
 
     expect(find.text('Save CSV to my phone'), findsNothing);
+  });
+
+  testWidgets('instructor email callout shown iff configured', (tester) async {
+    await pumpDataScreen(tester);
+
+    // Mirrors the app_config setting: the callout (address + Copy button)
+    // renders only when an address is configured, so forks that blank
+    // instructorEmail keep a clean screen.
+    if (instructorEmail.isNotEmpty) {
+      expect(find.text(instructorEmail), findsOneWidget);
+      expect(find.text('Copy'), findsOneWidget);
+    } else {
+      expect(find.text('Copy'), findsNothing);
+    }
   });
 }

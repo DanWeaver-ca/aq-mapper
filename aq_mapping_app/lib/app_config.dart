@@ -6,7 +6,7 @@ const String appTitle = 'Air Quality Mapper';
 
 /// Shown small in the UI so you can tell which build a student is running.
 /// Bump when distributing a new version.
-const String appVersion = '1.1.0';
+const String appVersion = '1.1.1';
 
 /// Shown under "Send to instructor" on the Data screen so students can
 /// address the share (the Web Share API cannot pre-fill a recipient).
