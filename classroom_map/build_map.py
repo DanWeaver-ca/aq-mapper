@@ -36,7 +36,7 @@ out_dir = sys.argv[2] if len(sys.argv) > 2 else HERE
 BASEMAP = "carto-positron"
 
 # Toolbar config: a high-res "download as image" camera button.
-IMG_CONFIG = {"displaylogo": False,
+IMG_CONFIG = {"displaylogo": False, "scrollZoom": True,
               "toImageButtonOptions": {"format": "png", "scale": 2,
                                        "filename": "utsc_class_map"}}
 
