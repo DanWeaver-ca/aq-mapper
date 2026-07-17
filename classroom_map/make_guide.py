@@ -1,17 +1,17 @@
-"""Generate the Word guide (Classroom_Map_Guide.docx) for TAs / colleagues.
+"""Generate the Word guide (Home_Base_Guide.docx) for TAs / colleagues.
 
+The printable twin of GETTING_STARTED.md — keep the two in sync.
 Run:  python3 make_guide.py
 Edit the content here and re-run to regenerate the document.
 """
 import os
 from docx import Document
 from docx.shared import Pt, RGBColor, Inches
-from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-OUT = os.path.join(HERE, "Classroom_Map_Guide.docx")
+OUT = os.path.join(HERE, "Home_Base_Guide.docx")
 
 doc = Document()
 
@@ -69,43 +69,50 @@ def note(text):
 
 
 # --- Title --------------------------------------------------------------
-t = doc.add_heading("AQ Mapper — Classroom Map Guide", level=0)
+doc.add_heading("AQ Mapper — Home Base Guide", level=0)
 sub = doc.add_paragraph()
-sr = sub.add_run("How to set up and run the air-quality class map. "
-                 "Written for a TA or colleague — no programming needed.")
+sr = sub.add_run("How to set up and run the classroom air-quality dashboard. "
+                 "Written for a TA or colleague — no programming needed. "
+                 "Allow ~10 minutes for the one-time setup.")
 sr.italic = True
 sr.font.color.rgb = RGBColor(0x55, 0x55, 0x55)
 doc.add_paragraph()
 
 # --- What this tool does ------------------------------------------------
-doc.add_heading("1. What this tool does", level=1)
+doc.add_heading("1. What Home Base does", level=1)
 doc.add_paragraph(
-    "During the lab, student groups collect air-quality readings on their "
-    "phones using the AQ Mapper app and export the data as CSV files. This "
-    "tool takes all of those CSV files, combines them, and produces an "
-    "interactive map you can project in the classroom for the debrief.")
-doc.add_paragraph("On the map you can:")
-bullet(" show one group at a time (“here’s Group 2”) or everyone "
-       "together, or split by indoor vs. outdoor.", "Filter the data:")
-bullet(" PM2.5, PM10, CO₂, HCHO, temperature, or humidity — the "
-       "colours match the phone app exactly.", "Colour the points by:")
-bullet(" hover over any point to see all of its readings.", "Inspect points:")
-bullet(" a second file shows a PM2.5 “heat” map of pollution "
-       "hotspots.", "See a heatmap:")
+    "During the lab, student groups record air-quality readings on their "
+    "phones with the AQ Mapper app and send you their data as CSV files. "
+    "Home Base merges all of those files and builds one interactive "
+    "dashboard (classroom_dashboard.html) you project for the debrief. "
+    "It has four tabs:")
+bullet(" every reading on a campus map. Filter to one group, outdoor or "
+       "indoor, or everyone; colour the points by PM2.5, CO₂, temperature "
+       "and more — the colours match the phone app exactly.", "Map:")
+bullet(" a smooth “estimated field” between the points that fades "
+       "where nobody sampled — with a smoothing-radius selector for the "
+       "how-do-global-datasets-do-it discussion.", "Interpolated:")
+bullet(" a PM2.5 density view of pollution hotspots.", "Heatmap:")
+bullet(" indoor-vs-outdoor averages and a per-group table.", "Stats:")
 doc.add_paragraph(
-    "The output is an ordinary HTML file that opens in any web browser. You "
-    "can project it, and you can email it to students so they can explore the "
-    "class data on their own afterward.")
+    "Above the tabs, a header shows the class totals and a group checklist: "
+    "green chips for groups whose data is in, grey chips for groups still "
+    "missing — so you can see who is outstanding while the class is running. "
+    "The dashboard is a single ordinary HTML file: project it, and email it "
+    "to students afterward.")
 
 # --- What you'll need ---------------------------------------------------
 doc.add_heading("2. What you’ll need", level=1)
 bullet(" Windows or Mac, either is fine.", "A laptop:")
-bullet(" the folder containing build_map.py and the other files (the same "
+bullet(" the folder containing home_base.py and the other files (the same "
        "folder this guide came in).", "This tool:")
 bullet(" a free program that runs the tool (one-time install, below).",
        "Python 3:")
 bullet(" classroom wifi. Only the map’s background needs internet; "
        "everything else works offline.", "Internet:")
+doc.add_paragraph(
+    "You do not need real data to set up: a fake class of five groups is "
+    "bundled, so you can rehearse everything beforehand.")
 
 # --- One-time setup -----------------------------------------------------
 doc.add_heading("3. One-time setup (once per computer)", level=1)
@@ -119,14 +126,14 @@ doc.add_paragraph("Mac:")
 bullet(" Python 3 is usually already installed. If not, download it from "
        "python.org and run the installer.")
 doc.add_paragraph("To confirm it worked, open a terminal "
-                  "(Windows: “Command Prompt”; Mac: “Terminal”) "
-                  "and type:")
+                  "(Windows: “Command Prompt”; Mac: "
+                  "“Terminal”) and type:")
 code("python --version")
 note("If Windows says ‘python is not recognized’, try ‘py "
-     "--version’. On Mac, use ‘python3 --version’. Use that same "
-     "word (python / py / python3) everywhere below.")
+     "--version’. On Mac, use ‘python3 --version’. Use that "
+     "same word (python / py / python3) everywhere below.")
 
-doc.add_heading("3.2  Install the two libraries the tool uses", level=2)
+doc.add_heading("3.2  Install the libraries the tool uses", level=2)
 doc.add_paragraph(
     "In the terminal, move into this tool’s folder and install its "
     "requirements. To move into the folder, type ‘cd ’ (with a "
@@ -137,67 +144,77 @@ note("If ‘pip’ isn’t found, try ‘pip3 install -r "
      "requirements.txt’ or ‘python -m pip install -r "
      "requirements.txt’. You only ever do this once per computer.")
 
-# --- Each lab: getting the data in -------------------------------------
-doc.add_heading("4. Each lab: getting the data in", level=1)
-step("Have each group export their data: in the AQ Mapper app, open the Data "
-     "screen and tap “Export & Share CSV”. They can AirDrop, email, "
-     "or otherwise send you the file.")
-step("Collect all the groups’ CSV files onto the laptop.")
-step("Put every CSV into the folder named “csvs” inside this tool’s "
-     "folder. The filenames don’t matter.")
-note("It’s safe to add the same file twice — duplicate readings are "
-     "detected and ignored automatically.")
+doc.add_heading("3.3  Rehearse with the bundled sample data", level=2)
+doc.add_paragraph(
+    "Double-click the launcher — run_windows.bat (Windows) or "
+    "run_mac.command (Mac; the first time only, right-click it and choose "
+    "Open, then Open again in the dialog). With no real CSVs present it "
+    "automatically uses the bundled fake class and opens the dashboard in "
+    "your browser. If you see the header, a row of green group chips, and "
+    "the four tabs, you are ready for lab day.")
 
-# --- Running the map ----------------------------------------------------
-doc.add_heading("5. Run the map", level=1)
+# --- Each lab -----------------------------------------------------------
+doc.add_heading("4. Each lab: getting the data in", level=1)
+step("Have each group send their data: in the AQ Mapper app they open the "
+     "Data screen and tap “Send to instructor”, then AirDrop or "
+     "email you the file (named like aq_UTSC-AQMS-07_20260716_143022.csv).")
+step("Collect all the groups’ CSV files onto the laptop.")
+step("Put every CSV into the folder named “csvs” inside this "
+     "tool’s folder. The filenames don’t matter.")
+note("It’s safe to add the same file twice — duplicate readings "
+     "are detected and ignored automatically.")
+
+# --- Running ------------------------------------------------------------
+doc.add_heading("5. Run the dashboard", level=1)
 doc.add_paragraph("Pick whichever matches your laptop:")
 bullet(" double-click “run_windows.bat”.", "Windows:")
-bullet(" double-click “run_mac.command”. The first time only, "
-       "right-click it and choose Open, then click Open in the dialog (this "
-       "tells macOS you trust it).", "Mac:")
+bullet(" double-click “run_mac.command”.", "Mac:")
 bullet(" in the terminal, run the command below.", "Any computer:")
-code("python build_map.py csvs")
+code("python home_base.py csvs")
 doc.add_paragraph(
-    "After a moment, the map (“classroom_map.html”) opens in your web "
-    "browser. A heatmap (“classroom_heatmap.html”) is also created in "
-    "the same folder — open it the same way (double-click).")
+    "After a moment, the dashboard (classroom_dashboard.html) opens in your "
+    "web browser. Re-run the launcher whenever more files arrive — it "
+    "takes seconds, and the checklist updates to show who is still missing.")
+note("To make the checklist expect your full class list:  "
+     "python home_base.py csvs --expect 25  (expects Group 1..Group 25), or "
+     "--roster roster.txt with your own names one per line. --title "
+     "“My School” changes the header title.")
 
-# --- Using the map ------------------------------------------------------
-doc.add_heading("6. Using the map in class", level=1)
-doc.add_paragraph("Two dropdown menus sit at the top-left of the map:")
-bullet(" choose “All groups”, “Outdoor”, “Indoor”, or "
-       "a single group. Pick a group to focus the discussion on their route, "
-       "then switch to “All groups” to compare the whole class.",
-       "Show:")
-bullet(" switch the variable the colours represent (PM2.5, CO₂, "
-       "temperature, etc.). Green is good / low; red is high. The colour "
-       "thresholds are the same ones shown in the phone app.", "Colour by:")
+# --- Using it -----------------------------------------------------------
+doc.add_heading("6. Using the dashboard in class", level=1)
+bullet(" start with a single group (“here’s Group 2”), then "
+       "switch Show to “All groups” for the reveal; Outdoor/Indoor "
+       "focuses the comparison. “Colour by” picks the variable: "
+       "· health bands uses the phones’ absolute colours; · "
+       "spread re-stretches to today’s range — use it when "
+       "everything looks one colour and structure appears within the green.",
+       "Map tab:")
+bullet(" the smooth surface is an estimate between the points, fading where "
+       "nobody sampled. Widening the radius (tight → wide) fills more "
+       "area with more guesswork — the same trade-off NASA’s "
+       "GISTEMP temperature maps make (250 vs 1200 km smoothing).",
+       "Interpolated tab:")
+bullet(" a quick visual of PM2.5 hotspots.", "Heatmap tab:")
+bullet(" the indoor-vs-outdoor CO₂ bars are usually the story of the "
+       "day; the table lets every group find itself.", "Stats tab:")
 doc.add_paragraph(
-    "Hover over (or tap) any point to see all of that reading’s values. "
-    "The colour scale on the right shows the thresholds for the selected "
-    "variable. To project, just put the browser window on the classroom "
-    "display and, if helpful, press the browser’s full-screen key (F11 on "
-    "Windows).")
+    "Hover over (or tap) any point for all of its readings. The camera icon "
+    "in a tab’s top-right toolbar saves that view as a PNG for slides. "
+    "To project, put the browser window on the classroom display (F11 = "
+    "full screen on Windows).")
 
 # --- Sharing ------------------------------------------------------------
-doc.add_heading("7. Sharing the map with students", level=1)
+doc.add_heading("7. Sharing with students afterwards", level=1)
 doc.add_paragraph(
-    "The two HTML files are self-contained. You can email them, post them to "
-    "the course page, or put them in a shared folder — students just open "
-    "them in any browser. They’ll need internet the first time so the map "
-    "background can load.")
-
-# --- Sample data --------------------------------------------------------
-doc.add_heading("8. Want to try it first, without real data?", level=1)
+    "classroom_dashboard.html is one self-contained file. Email it, post it "
+    "to the course page, or put it in a shared folder — it opens in any "
+    "browser; internet is needed only for the map background.")
 doc.add_paragraph(
-    "The tool can generate a fake class of five groups around UTSC so you can "
-    "practise before the lab. In the terminal, run:")
-code("python make_sample_data.py\npython build_map.py sample_csvs")
-doc.add_paragraph("This builds the same map from invented data. Real data "
-                  "always goes in the “csvs” folder instead.")
+    "Privacy: the CSVs contain GPS tracks and the group names students "
+    "typed. Keep the csvs folder off shared drives and public sites.")
 
 # --- Troubleshooting ----------------------------------------------------
-doc.add_heading("9. Troubleshooting", level=1)
+doc.add_heading("8. Troubleshooting", level=1)
 tbl = doc.add_table(rows=1, cols=2)
 try:
     tbl.style = "Light Grid Accent 1"
@@ -208,25 +225,36 @@ hdr[0].paragraphs[0].add_run("If you see…").bold = True
 hdr[1].paragraphs[0].add_run("Do this").bold = True
 rows = [
     ("‘python is not recognized’ (Windows)",
-     "Use ‘py’ instead of ‘python’, or reinstall Python and "
-     "tick ‘Add Python to PATH’."),
+     "Use ‘py’ instead of ‘python’, or reinstall Python "
+     "and tick ‘Add Python to PATH’."),
     ("‘command not found: python’ (Mac)",
-     "Use ‘python3’ instead of ‘python’."),
-    ("‘No module named plotly/pandas’",
-     "You skipped step 3.2 — run the pip install command in this tool’s "
-     "folder."),
+     "Use ‘python3’ (and ‘pip3’)."),
+    ("‘No module named plotly/pandas/PIL’",
+     "You skipped step 3.2 — run the pip install command in this "
+     "tool’s folder."),
+    ("An error mentioning ‘Scattermap’",
+     "Your Plotly is too old — run:  pip install -U "
+     "“plotly>=5.24,<7”."),
     ("Mac: ‘cannot be opened… unidentified developer’",
      "Right-click run_mac.command and choose Open (only needed the first "
      "time)."),
     ("‘No CSVs found’",
-     "Put the groups’ CSV files into the ‘csvs’ folder, then run "
-     "again."),
+     "Put the groups’ CSV files into the ‘csvs’ folder, then "
+     "run again."),
+    ("⚠ ‘file skipped’ in the dashboard header",
+     "That file wasn’t an app export — a raw Temtop download has "
+     "no GPS. Ask the group to re-send from the app’s Data screen."),
     ("The map background is blank or grey",
-     "No internet — connect to wifi and reopen the map. The points still "
-     "work offline; only the background needs a connection."),
-    ("Some points are missing",
-     "A file must be an AQ Mapper export (it contains GPS coordinates). A raw "
-     "sensor file straight off the Temtop has no location and is skipped."),
+     "No internet — points and stats still work; connect to wifi and "
+     "reload for the basemap."),
+    ("A group’s points sit far off campus",
+     "Their phone gave a coarse (cell-tower) location. Have students enable "
+     "Precise Location — and discuss it; real networks screen for "
+     "exactly this."),
+    ("A group sent data but their chip is grey",
+     "The name they typed in the app doesn’t match your roster "
+     "spelling — check the green chips for the name they actually "
+     "used."),
 ]
 for a, b in rows:
     c = tbl.add_row().cells
@@ -235,16 +263,19 @@ for a, b in rows:
 doc.add_paragraph()
 
 # --- Maintainer note ----------------------------------------------------
-doc.add_heading("10. For whoever maintains the code", level=1)
-bullet(" build_map.py reads the CSVs and writes the maps; make_sample_data.py "
-       "creates test data; the run_* launchers just call build_map.py.",
-       "Files:")
-bullet(" the colour thresholds live in the ‘VARS’ list near the top "
-       "of build_map.py and mirror the app’s lib/models/map_variable.dart. "
-       "If a band changes in the app, update it here too so the projected map "
-       "keeps matching the phones.", "Colours:")
-bullet(" a short version of this guide is in README.md in the same folder.",
-       "More detail:")
+doc.add_heading("9. For whoever maintains the code", level=1)
+bullet(" home_base.py reads the CSVs and writes the dashboard; "
+       "make_sample_data.py creates test data; the run_* launchers call "
+       "home_base.py. build_map.py is the previous four-file version, kept "
+       "unchanged for reference.", "Files:")
+bullet(" the colour thresholds live in the ‘VARS’ list near the "
+       "top of home_base.py and mirror the app’s "
+       "lib/models/map_variable.dart. If a band changes in the app, update "
+       "it here too so the projected map keeps matching the phones.",
+       "Colours:")
+bullet(" GETTING_STARTED.md in the same folder is the on-screen version of "
+       "this guide (keep the two in sync); README.md is the short "
+       "reference.", "More detail:")
 
 doc.save(OUT)
 print("wrote", OUT)

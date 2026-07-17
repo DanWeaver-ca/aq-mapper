@@ -28,8 +28,9 @@ interpolated "estimated field" with a selectable smoothing radius, a PM2.5
 density heatmap, and a summary-stats panel — plus a header checklist showing
 which groups have reported and which are missing.
 
-See `classroom_map/README.md` and the step-by-step
-`Classroom_Map_Guide.docx` for setup.
+First time? Follow the walkthrough in `classroom_map/GETTING_STARTED.md`
+(printable twin: `Home_Base_Guide.docx`); `classroom_map/README.md` is the
+short reference.
 
 ## Tech
 Flutter (web + mobile), OpenStreetMap via `flutter_map`, SQLite (`sqflite` on

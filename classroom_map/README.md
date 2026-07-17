@@ -9,6 +9,11 @@ Colours and thresholds match the phone app's legend bands exactly
 (`aq_mapping_app/lib/models/map_variable.dart`), so the projected map looks
 like the phones.
 
+**First time?** Follow [GETTING_STARTED.md](GETTING_STARTED.md) — a
+step-by-step walkthrough with troubleshooting, written for a TA or colleague.
+`Home_Base_Guide.docx` is the same guide as a printable/emailable Word file
+(regenerate it with `python make_guide.py` after editing).
+
 ## What you get — `classroom_dashboard.html`
 
 One self-contained page with four tabs:
@@ -85,6 +90,8 @@ python home_base.py sample_csvs
 | `csvs/` | drop the groups' real CSV exports here |
 | `requirements.txt` | Python dependencies |
 | `run_windows.bat`, `run_mac.command` | double-click launchers (build + open the dashboard) |
+| `GETTING_STARTED.md` | first-time walkthrough (this folder's front door) |
+| `make_guide.py` → `Home_Base_Guide.docx` | printable twin of the walkthrough |
 
 ## Keeping colours in sync with the app
 The band thresholds live in the `VARS` list at the top of `home_base.py` (and
