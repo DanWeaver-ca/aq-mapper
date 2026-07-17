@@ -17,10 +17,14 @@ pollution map and a CSV export that can be merged across groups.
 3. **Explore**: the Map screen colors points by any variable (PM2.5, PM10,
    CO₂, HCHO, Temp, RH) with a threshold legend, and has a heatmap toggle.
    History lets you review, edit, or delete entries.
-4. **Share**: Export & Share produces a CSV (Temtop-compatible column names
-   first, then GPS/group/variability columns) named after your device, e.g.
-   `aq_UTSC-AQMS-07_20260612_140321.csv`. Send it to the instructor via
-   AirDrop, email, or Drive.
+4. **Send**: *Send to instructor* opens the share sheet (AirDrop, Mail,
+   Drive…) with the CSV attached — the native sheet on mobile, the Web Share
+   API on the web build. Browsers that can't share files save the CSV instead
+   and say so. On web a separate *Save CSV to my phone* button keeps your own
+   copy. Files carry Temtop-compatible column names first, then
+   GPS/group/variability columns, and are named after your device, e.g.
+   `aq_UTSC-AQMS-07_20260612_140321.csv`. Set `instructorEmail` in
+   `lib/app_config.dart` to show the address to send to (with a copy button).
 5. **Merge** (instructor): on the receiving device, save each group's CSV to
    Files, then use *Import CSV from another group* on the Data screen.
    Duplicate rows are skipped automatically; imported points show a dark
@@ -95,4 +99,6 @@ Release builds currently use the debug key. Before distributing an APK:
 `flutter test` covers: model/DB round-trips, the v1→v2 schema migration
 (in-memory SQLite via `sqflite_common_ffi`), CSV export→import round-trips,
 import dedup by UID, map color thresholds at every band boundary, validation
-bounds, and entry-form widget validation.
+bounds, entry-form widget validation, and Data-screen send/save button states
+(these widget tests use `databaseFactoryFfiNoIsolate`; the share/download
+platform shims themselves are verified on real devices).

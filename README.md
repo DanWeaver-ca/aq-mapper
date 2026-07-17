@@ -40,7 +40,7 @@ pandas + Plotly. Hosting: GitHub Pages via the workflow in `.github/workflows/`.
 cd aq_mapping_app
 flutter pub get
 flutter analyze        # clean
-flutter test           # 45 tests
+flutter test           # 48 tests
 flutter run            # mobile
 flutter build web      # web/PWA (deployed automatically on push to main)
 ```

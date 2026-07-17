@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import '../app_config.dart';
 import '../models/measurement.dart';
 import '../services/database_service.dart';
 import '../services/csv_export_service.dart';
 import '../services/csv_import_service.dart';
 import '../services/session_service.dart';
 
-/// Export, import (merge other groups' CSVs), and data management.
+/// Send to instructor / save CSV, import (merge other groups' CSVs), and
+/// data management.
 class DataScreen extends StatefulWidget {
   const DataScreen({super.key});
 
@@ -22,8 +25,12 @@ class _DataScreenState extends State<DataScreen> {
   List<Measurement> _measurements = [];
   int _localCount = 0;
   int _importedCount = 0;
+  // Pre-loaded so the send tap handler has no slow await before the share
+  // call (iOS Safari only honours share() close to the user gesture).
+  String? _deviceId;
   bool _isLoading = true;
-  bool _isExporting = false;
+  bool _isSending = false;
+  bool _isSaving = false;
   bool _isImporting = false;
 
   @override
@@ -35,22 +42,28 @@ class _DataScreenState extends State<DataScreen> {
   Future<void> _loadMeasurements() async {
     final measurements = await _databaseService.getAllMeasurements();
     final counts = await _databaseService.countBySource();
+    final deviceId = await _sessionService.deviceId;
     if (!mounted) return;
     setState(() {
       _measurements = measurements;
       _localCount = counts['local'] ?? 0;
       _importedCount = counts['imported'] ?? 0;
+      _deviceId = deviceId;
       _isLoading = false;
     });
   }
 
-  void _showSnack(String message, {Color? color}) {
+  void _showSnack(String message, {Color? color, Duration? duration}) {
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: color),
+      SnackBar(
+        content: Text(message),
+        backgroundColor: color,
+        duration: duration ?? const Duration(seconds: 4),
+      ),
     );
   }
 
-  Future<void> _exportAndShare() async {
+  Future<void> _send() async {
     if (_measurements.isEmpty) return;
 
     // Anchor for the iOS share sheet — must be captured before async gaps.
@@ -59,18 +72,52 @@ class _DataScreenState extends State<DataScreen> {
         ? null
         : box.localToGlobal(Offset.zero) & box.size;
 
-    setState(() => _isExporting = true);
+    setState(() => _isSending = true);
     try {
-      final deviceId = await _sessionService.deviceId;
-      await _csvExportService.exportAndShare(
+      final outcome = await _csvExportService.send(
         _measurements,
-        deviceId: deviceId,
+        deviceId: _deviceId,
         shareOrigin: origin,
       );
+      if (mounted) {
+        switch (outcome) {
+          case SendOutcome.shared:
+            _showSnack('Share sheet completed.', color: Colors.green);
+          case SendOutcome.cancelled:
+            _showSnack('Share cancelled — your data was not sent.');
+          case SendOutcome.savedInstead:
+            _showSnack(
+              'This browser can\'t share files, so the CSV was saved to '
+              'your device instead. Attach it to an email to your '
+              'instructor.',
+              duration: const Duration(seconds: 7),
+            );
+        }
+      }
     } catch (e) {
-      if (mounted) _showSnack('Export failed: $e', color: Colors.red);
+      if (mounted) _showSnack('Sending failed: $e', color: Colors.red);
     }
-    if (mounted) setState(() => _isExporting = false);
+    if (mounted) setState(() => _isSending = false);
+  }
+
+  Future<void> _save() async {
+    if (_measurements.isEmpty) return;
+    setState(() => _isSaving = true);
+    try {
+      await _csvExportService.save(_measurements, deviceId: _deviceId);
+      if (mounted) {
+        _showSnack('CSV saved — check your Downloads or Files app.',
+            color: Colors.green);
+      }
+    } catch (e) {
+      if (mounted) _showSnack('Save failed: $e', color: Colors.red);
+    }
+    if (mounted) setState(() => _isSaving = false);
+  }
+
+  Future<void> _copyInstructorEmail() async {
+    await Clipboard.setData(const ClipboardData(text: instructorEmail));
+    if (mounted) _showSnack('Email address copied.');
   }
 
   Future<void> _import() async {
@@ -157,7 +204,7 @@ class _DataScreenState extends State<DataScreen> {
         title: const Text('Delete All Data?'),
         content: const Text(
           'This will permanently delete all measurements. '
-          'Make sure you have exported your data first.',
+          'Make sure you have sent or saved your data first.',
         ),
         actions: [
           TextButton(
@@ -197,14 +244,22 @@ class _DataScreenState extends State<DataScreen> {
           const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'This device holds the only copy of your readings. Export your '
-              'CSV before you finish — clearing the browser or app can erase '
-              'them.',
+              'This device holds the only copy of your readings. Send or '
+              'save your CSV before you finish — clearing the browser or '
+              'app can erase them.',
               style: TextStyle(fontSize: 13, color: Colors.brown.shade800),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buttonSpinner({Color? color}) {
+    return SizedBox(
+      width: 20,
+      height: 20,
+      child: CircularProgressIndicator(strokeWidth: 2, color: color),
     );
   }
 
@@ -247,21 +302,14 @@ class _DataScreenState extends State<DataScreen> {
                 SizedBox(
                   height: 52,
                   child: ElevatedButton.icon(
-                    onPressed: _measurements.isEmpty || _isExporting
+                    onPressed: _measurements.isEmpty || _isSending
                         ? null
-                        : _exportAndShare,
-                    icon: _isExporting
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                        : const Icon(Icons.share),
+                        : _send,
+                    icon: _isSending
+                        ? _buttonSpinner(color: Colors.white)
+                        : const Icon(Icons.send),
                     label: Text(
-                      _isExporting ? 'Exporting...' : 'Export & Share CSV',
+                      _isSending ? 'Opening share sheet...' : 'Send to instructor',
                       style: const TextStyle(fontSize: 16),
                     ),
                     style: ElevatedButton.styleFrom(
@@ -273,17 +321,72 @@ class _DataScreenState extends State<DataScreen> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 8),
+                Text(
+                  'Opens your share sheet — AirDrop it or attach it to an '
+                  'email.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                ),
+                if (instructorEmail.isNotEmpty)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          'Send to: $instructorEmail',
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[700],
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: _copyInstructorEmail,
+                        icon: const Icon(Icons.copy, size: 14),
+                        visualDensity: VisualDensity.compact,
+                        tooltip: 'Copy email address',
+                      ),
+                    ],
+                  ),
                 const SizedBox(height: 16),
+                if (_csvExportService.hasSeparateSave) ...[
+                  SizedBox(
+                    height: 52,
+                    child: OutlinedButton.icon(
+                      onPressed: _measurements.isEmpty || _isSaving
+                          ? null
+                          : _save,
+                      icon: _isSaving
+                          ? _buttonSpinner()
+                          : const Icon(Icons.download_outlined),
+                      label: Text(
+                        _isSaving ? 'Saving...' : 'Save CSV to my phone',
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Keeps your own copy — and your backup if sending fails.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  ),
+                  const SizedBox(height: 16),
+                ],
                 SizedBox(
                   height: 52,
                   child: OutlinedButton.icon(
                     onPressed: _isImporting ? null : _import,
                     icon: _isImporting
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
+                        ? _buttonSpinner()
                         : const Icon(Icons.file_download_outlined),
                     label: Text(
                       _isImporting
