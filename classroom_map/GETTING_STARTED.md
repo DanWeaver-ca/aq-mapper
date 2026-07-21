@@ -29,6 +29,12 @@ checklist of which groups have reported.
 - **Mac:** Python 3 is usually already there. If not, install from
   python.org.
 
+> **Already have Anaconda?** That *is* Python 3 — skip the install. But
+> Anaconda keeps itself out of the normal terminal: open **Anaconda Prompt**
+> from the Start menu and use *that* window for every command in this guide.
+> (No Anaconda Prompt in the Start menu? Use the full-path row in the
+> troubleshooting table.)
+
 Confirm it worked — open a terminal (Windows: *Command Prompt*; Mac:
 *Terminal*) and type:
 
@@ -58,7 +64,8 @@ Double-click the launcher — **`run_windows.bat`** (Windows) or
 **`run_mac.command`** (Mac; the first time, right-click → Open → Open, which
 tells macOS you trust it). With no real CSVs present, it automatically builds
 the dashboard from the bundled fake class of five groups and opens it in your
-browser.
+browser. (The Windows launcher finds Python on its own: `python` on PATH,
+then `py`, then a standard Anaconda install.)
 
 You should see a header ("100 points · 5 groups · …"), a row of green group
 chips, and four tabs: **Map · Interpolated · Heatmap · Stats**. Click through
@@ -125,7 +132,8 @@ typed. Keep the `csvs/` folder off shared drives and out of any public repo
 
 | If you see… | Do this |
 |---|---|
-| "python is not recognized" (Windows) | Use `py` instead of `python`, or reinstall Python with "Add Python to PATH" ticked. |
+| "python is not recognized" (Windows) | Use `py` instead of `python`, use the **Anaconda Prompt** if you have Anaconda, or reinstall Python with "Add Python to PATH" ticked. |
+| "Python was not found; run without arguments to install from the Microsoft Store…" | Windows' decoy python — no real Python is on your PATH. With Anaconda: open **Anaconda Prompt** instead, or run by full path: `C:\ProgramData\anaconda3\python.exe home_base.py csvs` (Anaconda may also live in `%LOCALAPPDATA%\anaconda3` or `%USERPROFILE%\anaconda3`). Without Anaconda: do step 2.1. |
 | "command not found: python" (Mac) | Use `python3` (and `pip3`). |
 | "No module named plotly / pandas / PIL" | Step 2.2 was skipped — run the pip install command inside this folder. |
 | An old Plotly install errors on `Scattermap` | Upgrade: `pip install -U "plotly>=5.24,<7"`. |

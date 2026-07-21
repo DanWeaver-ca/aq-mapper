@@ -57,6 +57,11 @@ tiles need internet (classroom wifi); everything else is embedded.
    pip install -r requirements.txt
    ```
 
+> **Anaconda user?** Anaconda *is* Python 3, but it only answers inside the
+> **Anaconda Prompt** (Start menu) — use that window for these commands, or
+> call it by full path: `C:\ProgramData\anaconda3\python.exe home_base.py csvs`.
+> `run_windows.bat` finds a standard Anaconda install on its own.
+
 ## Each lab
 1. Put every group's exported CSV into the **`csvs/`** folder (any filenames).
    Re-importing the same file is harmless — rows are de-duplicated by `UID`.

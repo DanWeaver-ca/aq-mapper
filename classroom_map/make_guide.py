@@ -125,6 +125,12 @@ bullet(" Open the Microsoft Store, search for “Python 3”, and click "
 doc.add_paragraph("Mac:")
 bullet(" Python 3 is usually already installed. If not, download it from "
        "python.org and run the installer.")
+doc.add_paragraph("Already have Anaconda?")
+bullet(" Anaconda is Python 3 — skip the install. But it keeps itself out "
+       "of the normal terminal: open “Anaconda Prompt” from the Start "
+       "menu and use that window for every command in this guide. (No "
+       "Anaconda Prompt in the Start menu? Use the full-path row in the "
+       "troubleshooting table.)")
 doc.add_paragraph("To confirm it worked, open a terminal "
                   "(Windows: “Command Prompt”; Mac: "
                   "“Terminal”) and type:")
@@ -150,8 +156,10 @@ doc.add_paragraph(
     "run_mac.command (Mac; the first time only, right-click it and choose "
     "Open, then Open again in the dialog). With no real CSVs present it "
     "automatically uses the bundled fake class and opens the dashboard in "
-    "your browser. If you see the header, a row of green group chips, and "
-    "the four tabs, you are ready for lab day.")
+    "your browser. (The Windows launcher finds Python on its own: PATH, "
+    "then ‘py’, then a standard Anaconda install.) If you see the "
+    "header, a row of green group chips, and the four tabs, you are ready "
+    "for lab day.")
 
 # --- Each lab -----------------------------------------------------------
 doc.add_heading("4. Each lab: getting the data in", level=1)
@@ -225,8 +233,17 @@ hdr[0].paragraphs[0].add_run("If you see…").bold = True
 hdr[1].paragraphs[0].add_run("Do this").bold = True
 rows = [
     ("‘python is not recognized’ (Windows)",
-     "Use ‘py’ instead of ‘python’, or reinstall Python "
-     "and tick ‘Add Python to PATH’."),
+     "Use ‘py’ instead of ‘python’, use the Anaconda Prompt "
+     "if you have Anaconda, or reinstall Python and tick ‘Add Python "
+     "to PATH’."),
+    ("‘Python was not found; run without arguments to install from "
+     "the Microsoft Store…’",
+     "Windows’ decoy python — no real Python is on your PATH. With "
+     "Anaconda: open “Anaconda Prompt” instead, or run by full "
+     "path:  C:\\ProgramData\\anaconda3\\python.exe home_base.py csvs  "
+     "(Anaconda may also live in %LOCALAPPDATA%\\anaconda3 or "
+     "%USERPROFILE%\\anaconda3). Without Anaconda: install Python, "
+     "step 3.1."),
     ("‘command not found: python’ (Mac)",
      "Use ‘python3’ (and ‘pip3’)."),
     ("‘No module named plotly/pandas/PIL’",
