@@ -578,6 +578,18 @@ PAGE = """<!DOCTYPE html>
     const p = document.querySelector('.pane.active');
     if (p) fit(p);
   }});
+  // Plotly 5.x mis-sizes the *initially visible* figure too (its autosize
+  // measurement races the flex layout), so fit the landing pane once Plotly
+  // has finished booting. Bounded retry: up to 50 x 100ms.
+  let bootTries = 0;
+  const bootTimer = setInterval(() => {{
+    const g = document.querySelector('.pane.active .plotly-graph-div');
+    if ((g && g._fullLayout) || ++bootTries > 50) {{
+      clearInterval(bootTimer);
+      const p = document.querySelector('.pane.active');
+      if (p) fit(p);
+    }}
+  }}, 100);
 </script>
 </body>
 </html>
