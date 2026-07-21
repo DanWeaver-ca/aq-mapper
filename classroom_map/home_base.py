@@ -337,7 +337,9 @@ def build_points_fig(df, groups, ctr):
             dict(buttons=show_buttons, x=0.01, xanchor="left", y=0.99,
                  yanchor="top", bgcolor="white", bordercolor="#bbb",
                  showactive=True),
-            dict(buttons=var_buttons, x=0.16, xanchor="left", y=0.99,
+            # x is a paper fraction while the Show button's width is fixed
+            # pixels, so 0.16 collides at narrower windows — keep a wide gap.
+            dict(buttons=var_buttons, x=0.22, xanchor="left", y=0.99,
                  yanchor="top", bgcolor="white", bordercolor="#bbb",
                  showactive=True),
         ],
@@ -345,7 +347,7 @@ def build_points_fig(df, groups, ctr):
             dict(text="Show", x=0.01, xref="paper", y=1.0, yref="paper",
                  yanchor="bottom", showarrow=False,
                  font=dict(size=11, color="#666")),
-            dict(text="Colour by", x=0.16, xref="paper", y=1.0, yref="paper",
+            dict(text="Colour by", x=0.22, xref="paper", y=1.0, yref="paper",
                  yanchor="bottom", showarrow=False,
                  font=dict(size=11, color="#666")),
         ],
