@@ -149,14 +149,20 @@ def _coords(df):
 
 
 def median_spacing(df):
-    """Median nearest-neighbour distance of the samples (cos-lat scaled)."""
+    """Characteristic sampling scale for the smoothing radius (cos-lat
+    scaled): median nearest-neighbour distance, floored by the point-density
+    scale (bbox diagonal / sqrt N). The median alone collapses to a few
+    metres on dense walking-route data — consecutive readings are near-
+    duplicates — which shrinks the field to specks hidden under the dots."""
     lat, lon, coslat0 = _coords(df)
     if len(lat) < 2:
         return 0.003
     P = np.column_stack([lon * coslat0, lat])
     nn = [np.sqrt(((P - P[i]) ** 2).sum(1))[np.arange(len(P)) != i].min()
           for i in range(len(P))]
-    return float(np.median(nn))
+    diag = float(np.hypot(np.ptp(P[:, 0]), np.ptp(P[:, 1])))
+    scale = max(float(np.median(nn)), diag / np.sqrt(len(P)))
+    return scale if scale > 0 else 0.003
 
 
 def make_grid(df, pad):
@@ -417,8 +423,11 @@ def build_interp_fig(df, ctr):
             images[(v["col"], rkey)] = field_datauri(fld, fade, lo, hi)
 
     def img_layer(col, rkey):
+        # below="traces" keeps the field under the dot markers — the MapLibre
+        # trace family stacks layout layers on top by default (the old mapbox
+        # traces put them underneath, so v1 got away with below="").
         return [dict(sourcetype="image", source=images[(col, rkey)],
-                     below="", coordinates=coords)]
+                     below="traces", coordinates=coords)]
 
     dft, dfr = VARS[0], "tight"
     dlo, dhi = ranges[dft["col"]]
@@ -545,7 +554,7 @@ PAGE = """<!DOCTYPE html>
   <section class="pane active" id="tab-map">{fig_map}</section>
   <section class="pane" id="tab-interp">{fig_interp}</section>
   <section class="pane" id="tab-heat">{fig_heat}</section>
-  <section class="pane" id="tab-stats">{fig_stats}</section>
+  <section class="pane" id="tab-stats" data-fixed-height>{fig_stats}</section>
 </main>
 <script>
   function show(id) {{
@@ -553,13 +562,21 @@ PAGE = """<!DOCTYPE html>
       p => p.classList.toggle('active', p.id === id));
     document.querySelectorAll('nav button').forEach(
       b => b.classList.toggle('active', b.dataset.t === id));
-    // Panes render at zero size while hidden; fix up on first show.
-    const gd = document.querySelector('#' + id + ' .plotly-graph-div');
-    if (gd) Plotly.Plots.resize(gd);
+    fit(document.getElementById(id));
+  }}
+  // Figures render at a 450px fallback while their pane is display:none, and
+  // Plotly 5.x's Plots.resize() declines to fix autosized figures — so pin
+  // the layout to the pane's real size with an explicit relayout instead.
+  // Fixed-height figures (Stats) keep their own size and scroll.
+  function fit(pane) {{
+    if (pane.hasAttribute('data-fixed-height')) return;
+    pane.querySelectorAll('.plotly-graph-div').forEach(g =>
+      Plotly.relayout(g, {{width: pane.clientWidth,
+                           height: pane.clientHeight}}));
   }}
   window.addEventListener('resize', () => {{
-    const gd = document.querySelector('.pane.active .plotly-graph-div');
-    if (gd) Plotly.Plots.resize(gd);
+    const p = document.querySelector('.pane.active');
+    if (p) fit(p);
   }});
 </script>
 </body>
