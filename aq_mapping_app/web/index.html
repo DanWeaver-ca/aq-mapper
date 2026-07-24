@@ -43,9 +43,50 @@
     #boot img { width: 96px; height: 96px; margin-bottom: 16px; }
     #boot .t { font-size: 18px; font-weight: 600; }
     #boot .s { font-size: 13px; opacity: 0.7; margin-top: 4px; }
+
+    /* WeChat / QQ in-app browser interceptor: those webviews can't share or
+       save files and keep their own storage sandbox, so data collected there
+       can become unreachable. Steer students to a real browser BEFORE they
+       start. (Shown only when the UA matches, or with ?simulate=wechat.) */
+    #wechat-guard { display: none; position: fixed; inset: 0; z-index: 9999;
+      background: rgba(0, 77, 64, 0.97); color: #fff; padding: 24px;
+      font-family: -apple-system, Roboto, "PingFang SC", "Microsoft YaHei",
+        Helvetica, Arial, sans-serif; overflow-y: auto; }
+    #wechat-guard .arrow { position: absolute; top: 10px; right: 18px;
+      font-size: 44px; animation: wc-bob 1.2s ease-in-out infinite; }
+    @keyframes wc-bob { 0%, 100% { transform: translateY(10px); }
+      50% { transform: translateY(0); } }
+    #wechat-guard .card { max-width: 420px; margin: 64px auto 0; }
+    #wechat-guard h2 { font-size: 20px; margin: 0 0 6px; }
+    #wechat-guard .zh { opacity: 0.95; }
+    #wechat-guard p { font-size: 15px; line-height: 1.45; margin: 10px 0; }
+    #wechat-guard .steps { background: rgba(255,255,255,0.12);
+      border-radius: 12px; padding: 12px 14px; font-size: 15px; }
+    #wechat-guard .steps b { font-size: 17px; }
+    #wechat-guard #wc-continue { display: block; margin: 22px auto 8px;
+      background: none; border: none; color: rgba(255,255,255,0.75);
+      font-size: 13px; text-decoration: underline; }
   </style>
 </head>
 <body>
+  <div id="wechat-guard">
+    <div class="arrow">⤴</div>
+    <div class="card">
+      <h2>Please open this page in your browser</h2>
+      <h2 class="zh" lang="zh-CN">请在浏览器中打开本页面</h2>
+      <p>You are inside WeChat, where this app cannot send or save your
+        measurements.</p>
+      <p class="zh" lang="zh-CN">您正在微信内置浏览器中，测量数据将无法发送或保存。</p>
+      <div class="steps">
+        <b>1.</b> Tap the <b>⋯</b> menu (top-right corner)<br>
+        <b>2.</b> Choose <b>“Open in Browser”</b><br>
+        <span class="zh" lang="zh-CN"><b>1.</b> 点击右上角 <b>⋯</b> 菜单
+          &nbsp;<b>2.</b> 选择「在浏览器打开」</span>
+      </div>
+      <p id="wc-note"></p>
+      <button id="wc-continue" type="button"></button>
+    </div>
+  </div>
   <div id="boot">
     <img src="icons/Icon-192.png" alt="AQ Mapper">
     <div class="t">AQ Mapper</div>
@@ -66,6 +107,38 @@
       var b = document.getElementById('boot');
       if (b) b.remove();
     });
+
+    // Stamped to true by tool/patch_web_shell.py when the deployment
+    // configures UPLOAD_URL ("Send to class" works even inside WeChat).
+    var AQ_UPLOAD_CONFIGURED = false;
+
+    (function () {
+      var ua = navigator.userAgent || '';
+      var inWeChat = /MicroMessenger/i.test(ua) || / QQ\//.test(ua) ||
+          /[?&]simulate=wechat/.test(location.search);
+      if (!inWeChat) return;
+      var guard = document.getElementById('wechat-guard');
+      var note = document.getElementById('wc-note');
+      var cont = document.getElementById('wc-continue');
+      if (AQ_UPLOAD_CONFIGURED) {
+        note.innerHTML = 'If you stay in WeChat, use the app’s ' +
+            '<b>“Send to class”</b> button — it works here. Saving files ' +
+            'does not.<br><span lang="zh-CN">若留在微信中，请使用应用内的' +
+            '「发送给全班」按钮上传数据；文件保存功能不可用。</span>';
+        cont.textContent = 'Continue in WeChat anyway / 仍在微信中继续';
+      } else {
+        note.innerHTML = '<b>Warning:</b> data collected inside WeChat may ' +
+            'become impossible to send to your instructor.<br>' +
+            '<span lang="zh-CN"><b>警告：</b>在微信内记录的数据可能无法' +
+            '发送给老师。</span>';
+        cont.textContent =
+            'I understand the risk — continue anyway / 我了解风险，仍要继续';
+      }
+      cont.addEventListener('click', function () {
+        guard.style.display = 'none';
+      });
+      guard.style.display = 'block';
+    })();
   </script>
 </body>
 </html>

@@ -42,7 +42,14 @@ idx = re.sub(r'(<meta name="description" content=").*?(">)',
              rf"\g<1>{desc}\g<2>", idx)
 idx = re.sub(r'(<meta name="apple-mobile-web-app-title" content=").*?(">)',
              rf"\g<1>{short}\g<2>", idx)
+# The WeChat interceptor softens its message when one-tap uploads are
+# configured (uploads work inside WeChat; share/save do not).
+upload_on = bool(cfg.get("UPLOAD_URL", "").strip())
+idx = re.sub(r"var AQ_UPLOAD_CONFIGURED = (true|false);",
+             f"var AQ_UPLOAD_CONFIGURED = {'true' if upload_on else 'false'};",
+             idx)
 with open(idx_path, "w", encoding="utf-8") as fh:
     fh.write(idx)
 
-print(f"stamped web shell: title={short!r}, name={title!r}")
+print(f"stamped web shell: title={short!r}, name={title!r}, "
+      f"upload={'on' if upload_on else 'off'}")
