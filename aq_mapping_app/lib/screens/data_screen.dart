@@ -6,6 +6,7 @@ import '../services/database_service.dart';
 import '../services/csv_export_service.dart';
 import '../services/csv_import_service.dart';
 import '../services/session_service.dart';
+import '../services/upload_service.dart';
 
 /// Send to instructor / save CSV, import (merge other groups' CSVs), and
 /// data management.
@@ -21,6 +22,7 @@ class _DataScreenState extends State<DataScreen> {
   final _csvExportService = CsvExportService();
   late final _csvImportService = CsvImportService(_databaseService);
   final _sessionService = SessionService();
+  final _uploadService = UploadService();
 
   List<Measurement> _measurements = [];
   int _localCount = 0;
@@ -28,10 +30,12 @@ class _DataScreenState extends State<DataScreen> {
   // Pre-loaded so the send tap handler has no slow await before the share
   // call (iOS Safari only honours share() close to the user gesture).
   String? _deviceId;
+  String? _groupName;
   bool _isLoading = true;
   bool _isSending = false;
   bool _isSaving = false;
   bool _isImporting = false;
+  bool _isUploading = false;
 
   @override
   void initState() {
@@ -43,12 +47,14 @@ class _DataScreenState extends State<DataScreen> {
     final measurements = await _databaseService.getAllMeasurements();
     final counts = await _databaseService.countBySource();
     final deviceId = await _sessionService.deviceId;
+    final groupName = await _sessionService.groupName;
     if (!mounted) return;
     setState(() {
       _measurements = measurements;
       _localCount = counts['local'] ?? 0;
       _importedCount = counts['imported'] ?? 0;
       _deviceId = deviceId;
+      _groupName = groupName;
       _isLoading = false;
     });
   }
@@ -61,6 +67,41 @@ class _DataScreenState extends State<DataScreen> {
         duration: duration ?? const Duration(seconds: 4),
       ),
     );
+  }
+
+  Future<void> _sendToClass() async {
+    if (_measurements.isEmpty) return;
+    setState(() => _isUploading = true);
+    try {
+      final result = await _uploadService.sendAll(
+        _measurements,
+        groupName: _groupName,
+        deviceId: _deviceId,
+      );
+      if (mounted) {
+        final newNote = result.added == 0
+            ? 'already all there'
+            : '${result.added} new';
+        _showSnack(
+          'Class map received ${result.received} readings ($newNote). '
+          'Re-send any time — duplicates are filtered.',
+          color: Colors.green,
+          duration: const Duration(seconds: 6),
+        );
+      }
+    } on UploadException catch (e) {
+      if (mounted) {
+        _showSnack(
+          '$e Your data is still on this phone — try again, or use '
+          '"Send to instructor".',
+          color: Colors.red,
+          duration: const Duration(seconds: 7),
+        );
+      }
+    } catch (e) {
+      if (mounted) _showSnack('Upload failed: $e', color: Colors.red);
+    }
+    if (mounted) setState(() => _isUploading = false);
   }
 
   Future<void> _send() async {
@@ -299,6 +340,41 @@ class _DataScreenState extends State<DataScreen> {
                 const SizedBox(height: 20),
                 if (_localCount > 0) _exportReminder(),
                 const SizedBox(height: 8),
+                // "Send to class" exists only when a deployment configures
+                // UPLOAD_URL — without it the screen is exactly the v1.x one.
+                if (_uploadService.isConfigured) ...[
+                  SizedBox(
+                    height: 52,
+                    child: ElevatedButton.icon(
+                      onPressed: _measurements.isEmpty || _isUploading
+                          ? null
+                          : _sendToClass,
+                      icon: _isUploading
+                          ? _buttonSpinner(color: Colors.white)
+                          : const Icon(Icons.cloud_upload_outlined),
+                      label: Text(
+                        _isUploading ? 'Uploading...' : 'Send to class',
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.teal,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'One tap — uploads all your readings to the class map. '
+                    'No email needed; works in any browser. Re-send any '
+                    'time.',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  ),
+                  const SizedBox(height: 16),
+                ],
                 SizedBox(
                   height: 52,
                   child: ElevatedButton.icon(

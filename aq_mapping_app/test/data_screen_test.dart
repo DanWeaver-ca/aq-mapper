@@ -81,4 +81,20 @@ void main() {
       expect(find.text('Copy'), findsNothing);
     }
   });
+
+  testWidgets('"Send to class" appears only when UPLOAD_URL is configured',
+      (tester) async {
+    await DatabaseService().insertMeasurement(fullMeasurement());
+    await pumpDataScreen(tester);
+
+    // Off-by-default guarantee: a deployment without UPLOAD_URL (including
+    // the live UTSC site until Dan flips it) must render the v1.x screen.
+    if (uploadUrl.isEmpty) {
+      expect(find.text('Send to class'), findsNothing);
+    } else {
+      expect(find.text('Send to class'), findsOneWidget);
+    }
+    // Either way the classic paths stay present.
+    expect(find.text('Send to instructor'), findsOneWidget);
+  });
 }

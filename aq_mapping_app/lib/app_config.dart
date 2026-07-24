@@ -26,6 +26,15 @@ const String appVersion = '1.2.0';
 const String instructorEmail = String.fromEnvironment('INSTRUCTOR_EMAIL',
     defaultValue: 'dan.weaver@utoronto.ca');
 
+/// Optional "Send to class" upload endpoint (the Apps Script receiver —
+/// see classroom_map/upload_endpoint/SETUP_UPLOAD.md). Empty (the default)
+/// hides the feature entirely, leaving the Data screen exactly as v1.x.
+/// Solves the no-email-account and WeChat-browser send failures: uploading
+/// is a plain web request, so it works where share sheets and downloads
+/// don't.
+const String uploadUrl =
+    String.fromEnvironment('UPLOAD_URL', defaultValue: '');
+
 /// Sensor brand used in UI wording ("the ID printed on your Temtop
 /// sensor"). The CSV column names are NOT derived from this — they are a
 /// fixed file-format contract shared by the app, the classroom hub, and
