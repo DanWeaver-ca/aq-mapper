@@ -257,9 +257,12 @@ def load_folder(csv_dir):
 
 # --- the four figures (ported from build_map.py) ---------------------------
 
-def build_points_fig(df, groups, ctr):
+def build_points_fig(df, groups, ctr, pois=((), ())):
     """Points map: Show dropdown (All/Outdoor/Indoor/per-group) + Colour-by
-    dropdown with a health-bands and a spread mode per variable."""
+    dropdown with a health-bands and a spread mode per variable. `pois` is
+    load_pois() output; POI traces are appended after the data traces and
+    pinned visible/styled in every dropdown state (Plotly restyle arrays
+    cycle across ALL traces, so each button's arrays must cover them)."""
     default = VARS[0]
     traces = []
     for g in groups:
@@ -277,11 +280,35 @@ def build_points_fig(df, groups, ctr):
                         coloraxis="coloraxis"),
             customdata=gd[HOVER_COLS].values, hovertemplate=HOVER))
 
+    # POI overlay: boundary outlines + labelled pins (colours match the
+    # phone app's indigo POI markers). extra_colors keeps marker.color
+    # restyles from bleeding onto them; visibility gets pinned True below.
+    poi_points, poi_outlines = pois
+    extra_colors = []
+    outline_color = "rgba(57,73,171,0.65)"
+    for outline in poi_outlines:
+        fig.add_trace(go.Scattermap(
+            lat=[p[0] for p in outline], lon=[p[1] for p in outline],
+            mode="lines", line=dict(color=outline_color, width=3),
+            hoverinfo="skip", showlegend=False, name="boundary"))
+        extra_colors.append(outline_color)
+    if poi_points:
+        fig.add_trace(go.Scattermap(
+            lat=[p[1] for p in poi_points], lon=[p[2] for p in poi_points],
+            mode="markers+text", text=[p[0] for p in poi_points],
+            textposition="top center",
+            textfont=dict(size=12, color="#1a237e"),
+            marker=dict(size=12, color="#3949ab"),
+            hovertemplate="%{text}<extra></extra>",
+            showlegend=False, name="POIs"))
+        extra_colors.append("#3949ab")
+
     n_out = int((df["LOCATION_TYPE"] == "outdoor").sum())
     n_in = int((df["LOCATION_TYPE"] == "indoor").sum())
 
     def visible_for(predicate):
-        return [predicate(g, s) for (g, s, _) in traces]
+        return ([predicate(g, s) for (g, s, _) in traces]
+                + [True] * len(extra_colors))
 
     show_buttons = [
         dict(label=f"All groups ({len(df)})", method="restyle",
@@ -299,7 +326,8 @@ def build_points_fig(df, groups, ctr):
 
     var_buttons = []
     for v in VARS:
-        vals = [gd[v["col"]].tolist() for (_, _, gd) in traces]
+        vals = ([gd[v["col"]].tolist() for (_, _, gd) in traces]
+                + extra_colors)
         health = stepped_scale(v["thr"], v["colors"], v["cmin"], v["cmax"])
         var_buttons.append(dict(
             label=f"{v['label']} · health bands", method="update",
@@ -478,6 +506,49 @@ def build_interp_fig(df, ctr):
     return interp
 
 
+# --- optional campus POIs (same file the phone app renders) ----------------
+
+def load_pois(path):
+    """Parse campus_pois.geojson — the geojson.io-drawn file of TA stations,
+    suggested spots, and the campus boundary (see SETUP.md). Returns
+    (points, outlines): points = [(name, lat, lon)], outlines =
+    [[(lat, lon), ...]]. Missing or broken file → both empty."""
+    try:
+        with open(path, encoding="utf-8") as fh:
+            root = json.load(fh)
+    except OSError:
+        return [], []
+    except ValueError as e:
+        print(f"  campus POIs ignored ({os.path.basename(path)}: {e})")
+        return [], []
+    points, outlines = [], []
+    if not isinstance(root, dict) or root.get("type") != "FeatureCollection":
+        return [], []
+
+    def ring(coords):
+        return [(float(p[1]), float(p[0])) for p in coords]
+
+    for feature in root.get("features") or []:
+        geom = (feature or {}).get("geometry") or {}
+        props = (feature or {}).get("properties") or {}
+        name = str(props.get("name") or props.get("Name")
+                   or props.get("title") or "POI")
+        kind, coords = geom.get("type"), geom.get("coordinates")
+        try:
+            if kind == "Point":
+                points.append((name, float(coords[1]), float(coords[0])))
+            elif kind == "LineString":
+                outlines.append(ring(coords))
+            elif kind == "Polygon":
+                outlines.extend(ring(r) for r in coords)
+            elif kind == "MultiPolygon":
+                for polygon in coords:
+                    outlines.extend(ring(r) for r in polygon)
+        except (TypeError, ValueError, IndexError):
+            continue
+    return points, outlines
+
+
 # --- checklist + page assembly ---------------------------------------------
 
 def roster_chips(groups, df, expected):
@@ -623,6 +694,11 @@ def main(argv=None):
     ap.add_argument("--title", default=_default_title(),
                     help="event title shown in the header "
                          "(default: EVENT_TITLE from deploy.config.json)")
+    ap.add_argument("--pois", metavar="FILE",
+                    default=os.path.join(HERE, "..", "campus_pois.geojson"),
+                    help="campus POI geojson to draw on the Map tab "
+                         "(default: /campus_pois.geojson at the repo root — "
+                         "the same file the phone app shows; absent = none)")
     args = ap.parse_args(argv)
 
     df, n_ok, skipped = load_folder(args.csv_dir)
@@ -634,6 +710,11 @@ def main(argv=None):
           + (f" ({len(skipped)} files skipped)" if skipped else ""))
     for name, reason in skipped:
         print(f"  skipped {name}: {reason}")
+
+    pois = load_pois(args.pois)
+    if pois[0] or pois[1]:
+        print(f"campus POIs: {len(pois[0])} points, "
+              f"{len(pois[1])} outlines from {os.path.basename(args.pois)}")
 
     expected = []
     if args.roster:
@@ -654,7 +735,7 @@ def main(argv=None):
     html = PAGE.format(
         title=escape(args.title), plotlyjs=get_plotlyjs(),
         meta=escape(meta), warn=warn, chip_label=chip_label, chips=chips,
-        fig_map=fig_html(build_points_fig(df, groups, ctr)),
+        fig_map=fig_html(build_points_fig(df, groups, ctr, pois=pois)),
         fig_interp=fig_html(build_interp_fig(df, ctr)),
         fig_heat=fig_html(build_heatmap_fig(df, ctr)),
         fig_stats=fig_html(build_stats_fig(df, groups), full_height=False),
