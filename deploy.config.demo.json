@@ -11,5 +11,6 @@
   "SENSOR_NAME": "Temtop",
   "APP_URL": "https://danweaver-ca.github.io/aq-mapper/demo/",
   "TILES_BBOX": "43.646,43.660,-79.395,-79.373",
-  "STORAGE_KEY": "demo"
+  "STORAGE_KEY": "demo",
+  "UPLOAD_URL": ""
 }

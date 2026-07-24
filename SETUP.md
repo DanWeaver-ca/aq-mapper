@@ -28,6 +28,7 @@ Open the file on GitHub, click the pencil (Edit), change the values, commit.
 | `SENSOR_NAME` | Sensor brand in the setup wording ("the ID printed on your … sensor") |
 | `APP_URL` | Your deployed address — feeds the student-handout QR code |
 | `TILES_BBOX` | `latMin,latMax,lonMin,lonMax` for the optional offline tile pack |
+| `UPLOAD_URL` | *(optional)* one-tap **"Send to class"** upload endpoint — leave `""` to hide the button; see [`classroom_map/upload_endpoint/SETUP_UPLOAD.md`](classroom_map/upload_endpoint/SETUP_UPLOAD.md) (~5 min, fixes students without email and WeChat-browser users) |
 
 > **Public by design:** this file (and the built app) is public — the email
 > and coordinates in it are visible to anyone. Use a role or department
@@ -63,6 +64,17 @@ python student_handout/make_handout.py
 
 ## Optional extras (need a computer, not required)
 
+- **One-tap class uploads** — a free Google Apps Script receiver gives the
+  app a "Send to class" button (no email account needed; works inside
+  WeChat's browser, where sharing and saving files don't). Five-minute
+  setup: [`classroom_map/upload_endpoint/SETUP_UPLOAD.md`](classroom_map/upload_endpoint/SETUP_UPLOAD.md).
+- **Campus map POIs** — mark TA stations, suggested measuring spots, and a
+  stay-inside boundary on the students' map: draw them on
+  [geojson.io](https://geojson.io) (points get a `name` property; one
+  polygon for the boundary), save as **`campus_pois.geojson`** at the repo
+  root, commit. Labelled pins + boundary appear in the app and on Home
+  Base's Map tab. [`campus_pois.example.geojson`](campus_pois.example.geojson)
+  shows the format — copy, re-draw, rename. No file = no layer.
 - **Offline campus tiles** — for field sites with poor signal. Set
   `TILES_BBOX`, then run `python aq_mapping_app/tool/download_campus_tiles.py`
   and commit the PNGs it writes to `aq_mapping_app/assets/tiles/`. Without

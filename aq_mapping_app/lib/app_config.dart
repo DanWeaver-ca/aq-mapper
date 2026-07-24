@@ -17,7 +17,7 @@ const String appTitle =
 /// Shown small in the UI so you can tell which build a student is running.
 /// Bump when distributing a new version. Deliberately NOT configurable —
 /// it identifies the code, not the institution.
-const String appVersion = '1.2.0';
+const String appVersion = '2.0.0';
 
 /// Shown under "Send to instructor" on the Data screen so students can
 /// address the share (the Web Share API cannot pre-fill a recipient).

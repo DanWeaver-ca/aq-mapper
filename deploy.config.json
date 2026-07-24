@@ -10,5 +10,6 @@
   "DEVICE_COUNT": "25",
   "SENSOR_NAME": "Temtop",
   "APP_URL": "https://danweaver-ca.github.io/aq-mapper/",
-  "TILES_BBOX": "43.776,43.793,-79.198,-79.176"
+  "TILES_BBOX": "43.776,43.793,-79.198,-79.176",
+  "UPLOAD_URL": ""
 }

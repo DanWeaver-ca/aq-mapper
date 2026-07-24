@@ -58,8 +58,14 @@ if not str(cfg["APP_URL"]).startswith("https://"):
 sk = str(cfg.get("STORAGE_KEY", ""))
 if sk and not re.fullmatch(r"[a-z0-9_-]{1,16}", sk):
     errs.append("STORAGE_KEY must be 1-16 chars of a-z 0-9 _ - (or absent)")
+# Optional: one-tap "Send to class" endpoint (see
+# classroom_map/upload_endpoint/SETUP_UPLOAD.md). Empty/absent = feature off.
+up = str(cfg.get("UPLOAD_URL", "")).strip()
+if up and not up.startswith("https://"):
+    errs.append("UPLOAD_URL must start with https:// (or be empty)")
 
 if errs:
     sys.exit("deploy.config.json: " + "; ".join(errs))
 print(f"deploy.config.json OK — {cfg['INSTITUTION']} ({lat}, {lon}), "
-      f"{cfg['DEVICE_COUNT']} devices, {cfg['APP_URL']}")
+      f"{cfg['DEVICE_COUNT']} devices, {cfg['APP_URL']}, "
+      f"class upload {'ON' if up else 'off'}")

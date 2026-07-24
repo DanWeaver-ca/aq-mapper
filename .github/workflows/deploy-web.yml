@@ -11,6 +11,7 @@ on:
       - 'aq_mapping_app/**'
       - 'deploy.config.json'
       - 'deploy.config.demo.json'
+      - 'campus_pois.geojson'
       - '.github/workflows/deploy-web.yml'
   workflow_dispatch:
 
@@ -56,6 +57,17 @@ jobs:
           flutter build web --release --base-href "/${GITHUB_REPOSITORY#*/}/demo/" --dart-define-from-file=../deploy.config.demo.json
           mkdir -p ../_site/demo
           cp -R build/web/. ../_site/demo/
+      # Optional campus POIs (TA stations, boundary — drawn on geojson.io).
+      # Served beside the app; institution deployment only, since the demo
+      # is centred elsewhere. Absent file = the map layer stays invisible.
+      - name: Include campus POIs (optional)
+        run: |
+          if [ -f ../campus_pois.geojson ]; then
+            cp ../campus_pois.geojson ../_site/campus_pois.geojson
+            echo "campus_pois.geojson included"
+          else
+            echo "no campus_pois.geojson - POI layer stays off"
+          fi
       - uses: actions/upload-pages-artifact@v5
         with:
           path: _site

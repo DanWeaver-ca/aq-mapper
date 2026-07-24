@@ -54,6 +54,11 @@ aq_mapping_app/                        # —— the Flutter app, in detail —�
       csv_export_service.dart          # CSV build + send/save via the platform seam
                                        #   (csv_export_platform_{io,web}.dart; SendOutcome)
       csv_import_service.dart          # CSV parsing/validation + merge (source='imported')
+      upload_service.dart              # v3 "Send to class": POST all rows to UPLOAD_URL
+                                       #   (text/plain JSON, no preflight; UID-dedup makes
+                                       #   re-sending safe; hidden when URL empty)
+      poi_service.dart                 # v3 campus POIs: fetch/parse /campus_pois.geojson
+                                       #   (points+boundary), prefs-cached for offline
     widgets/
       heatmap_layer.dart               # flutter_map_heatmap wrapper (only file touching it)
   test/                                # 48 tests: model, CSV round-trip, migration (ffi),
@@ -142,9 +147,15 @@ Students use **personal phones, mixed iOS + Android**, with **no institutional A
 
 - ✅ **Repo reorganized (2026-06-17):** the standalone Python tools moved out of the Flutter app to the repo root (`classroom_map/`, `student_handout/`); unused desktop scaffolding (`macos/windows/linux`) deleted (regenerable via `flutter create`); project briefs moved to `docs/`. The Flutter app (`aq_mapping_app/`) is unchanged and still one codebase building iOS + Android + web. The native-capable state is tagged `v1.0.0`.
 
+- ✅ **v3 / app 2.0.0 (2026-07-24, built after lab 2's send failures — ~half of groups couldn't email their CSV: no email account, or the app opened inside WeChat):**
+  - **"Send to class" one-tap upload** (`upload_service.dart` + `classroom_map/upload_endpoint/` Apps Script → Google Sheet whose columns are byte-identical to the app CSV, so its CSV download drops into Home Base's `csvs/`). Opt-in via `UPLOAD_URL` in deploy.config.json (empty = button absent — live site unchanged until Dan deploys the endpoint per `SETUP_UPLOAD.md` and flips the config). Idempotent: sends all rows every time, endpoint + Home Base dedup by UID; no DB schema change. Works inside WeChat (plain fetch POST).
+  - **WeChat/QQ interceptor** in `web/index.html`: bilingual overlay (UA `MicroMessenger`/` QQ/`; `?simulate=wechat` to test) steering to "⋯ → Open in Browser" before data lands in WeChat's separate storage sandbox; softer dismissible wording when UPLOAD_URL is configured (stamped by `patch_web_shell.py`).
+  - **Campus POI layer**: optional `/campus_pois.geojson` at repo root (draw on geojson.io; `campus_pois.example.geojson` shows the format) → labelled indigo pins + boundary outline in the app map (runtime fetch, prefs-cached for offline) and on Home Base's Map tab (`--pois`; dropdown restyle arrays extended over the POI traces — Plotly cycles short arrays). Workflow copies it to the site root (institution deployment only).
+  - App QR caption now bilingual "use your Camera, not WeChat" (`make_qr.py` grew CJK font support + shrink-to-fit). Tag `v2.0-lab2` preserves the exact lab-2 state; all v3 features are config-gated off by default.
+
 ## Next Steps (priority order — v1.1 and v1.2 are shipped & deployed)
 1. **Phone verification of v1.2** (Dan, ~2 min): UTSC URL still has his existing data/session (empty `STORAGE_KEY` keeps legacy storage names — regression-tested, but the phone is ground truth); `/demo/` starts blank with Example University branding. Also the untested corners of the send-flow device matrix: iPhone home-screen PWA (standalone mode), Android Chrome, desktop Firefox (expect the labelled saved-instead fallback).
 2. **Pre-article polish round** (`docs/v2_improvement_plan.md` §5): README screenshots + demo GIF (regenerate from sample data only), CI workflow running `flutter analyze`+`flutter test`+hub smoke test with badges, CITATION.cff + Zenodo DOI on next release, regenerate the student handout (new "Send to instructor" wording + the pending "enable Precise Location" line).
-3. **Article** (`docs/article_draft.md`): fill the [bracketed] facts from the 2026-07-16 run, regenerate figures from `sample_csvs/`, pick the venue (The Physics Teacher = primary recommendation), submit.
-4. **v2.0 — one-tap upload + live Home Base** (plan §1–2): "Send to class" endpoint (opt-in via a config URL; Apps Script or Cloudflare Worker; LAN/hotspot mode = same code path) + Dash version of Home Base with live-updating group checklist.
+3. **Publication** (`docs/article_draft.md`): fill the [bracketed] facts from the 2026-07-16 run, regenerate figures from `sample_csvs/`, submit. Venue plan updated 2026-07-18 (details in the draft's venue notes): activity paper → The Physics Teacher first (Connected Science Learning second; Physics Education demoted — discourages phone-as-equipment full papers), **plus a JOSE software paper in parallel** (reviews the repo itself; polish round ≈ JOSE checklist). Atmospheric-science community voiced interest via the summer-school TA's conference report → BAMS/Eos piece or AGU/AMS/CMOS talk as companion; TA summer-school pilot (v1.2 config test + second site) → JGE research paper later if learning outcomes collected.
+4. **Activate v3 before lab 3 (~week of 2026-08-10)**: Dan deploys the Apps Script (`classroom_map/upload_endpoint/SETUP_UPLOAD.md`, ~5 min), sets `UPLOAD_URL` in deploy.config.json, draws `campus_pois.geojson` on geojson.io; rehearse a phone → sheet → Home Base round trip and the WeChat overlay (`?simulate=wechat`). Remaining v2.0 dream: live/Dash Home Base with auto-refreshing checklist; LAN/hotspot mode (same upload code path).
 5. *(optional)* outdoor-only interpolation (indoor points = interpolating "through walls"; deferred 2026-06-16); group-code picker + `ACCURACY_M` column (⚠ schema v3 + migration + ffi test); zh-CN strings for visiting cohorts.
