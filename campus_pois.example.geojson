@@ -1,0 +1,34 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "name": "Home base — lecture room" },
+      "geometry": { "type": "Point", "coordinates": [-79.1873, 43.7841] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "TA station — food court" },
+      "geometry": { "type": "Point", "coordinates": [-79.1889, 43.7855] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Try here: valley trail" },
+      "geometry": { "type": "Point", "coordinates": [-79.1832, 43.7815] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "name": "Campus boundary" },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [-79.1950, 43.7790],
+          [-79.1790, 43.7790],
+          [-79.1790, 43.7900],
+          [-79.1950, 43.7900],
+          [-79.1950, 43.7790]
+        ]]
+      }
+    }
+  ]
+}

@@ -9,6 +9,7 @@ import '../models/map_variable.dart';
 import '../models/measurement.dart';
 import '../services/database_service.dart';
 import '../services/location_service.dart';
+import '../services/poi_service.dart';
 import '../widgets/heatmap_layer.dart';
 import '../widgets/offline_first_tile_provider.dart';
 
@@ -22,9 +23,11 @@ class MapScreen extends StatefulWidget {
 class _MapScreenState extends State<MapScreen> {
   final _databaseService = DatabaseService();
   final _locationService = LocationService();
+  final _poiService = PoiService();
   final _mapController = MapController();
   final _heatmapReset = StreamController<void>.broadcast();
   List<Measurement> _measurements = [];
+  CampusPois _pois = const CampusPois();
   bool _isLoading = true;
   bool _showHeatmap = false;
   bool _legendExpanded = true;
@@ -61,6 +64,12 @@ class _MapScreenState extends State<MapScreen> {
   void initState() {
     super.initState();
     _loadMeasurements();
+    _loadPois();
+  }
+
+  Future<void> _loadPois() async {
+    final pois = await _poiService.load();
+    if (mounted && !pois.isEmpty) setState(() => _pois = pois);
   }
 
   @override
@@ -264,6 +273,20 @@ class _MapScreenState extends State<MapScreen> {
           // falling back to the live server elsewhere.
           tileProvider: OfflineFirstTileProvider(),
         ),
+        // Optional deployment POIs (campus_pois.geojson): boundary outlines
+        // under the data, labelled pins above it — wayfinding, so they stay
+        // visible in heatmap mode too.
+        if (_pois.outlines.isNotEmpty)
+          PolylineLayer(
+            polylines: [
+              for (final outline in _pois.outlines)
+                Polyline(
+                  points: outline,
+                  color: Colors.indigo.withValues(alpha: 0.65),
+                  strokeWidth: 3,
+                ),
+            ],
+          ),
         if (_showHeatmap)
           MeasurementHeatmapLayer(
             measurements: _visibleMeasurements,
@@ -275,7 +298,44 @@ class _MapScreenState extends State<MapScreen> {
             markers:
                 _visibleMeasurements.map((m) => _buildMarker(m)).toList(),
           ),
+        if (_pois.pois.isNotEmpty)
+          MarkerLayer(
+            markers: _pois.pois.map(_buildPoiMarker).toList(),
+          ),
       ],
+    );
+  }
+
+  Marker _buildPoiMarker(CampusPoi poi) {
+    return Marker(
+      point: poi.point,
+      width: 140,
+      height: 58,
+      alignment: Alignment.topCenter,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.place, color: Colors.indigo, size: 28),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.92),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.indigo.shade200),
+            ),
+            child: Text(
+              poi.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: Colors.indigo.shade900,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
