@@ -40,3 +40,6 @@ aq_mapping_app/android/key.properties
 # Large binary lab reference — kept on disk, exceeds GitHub's 100MB file limit.
 # (A 44MB PDF of the same overview is tracked instead.)
 lab_documents/Temtop sensor/Temptop_device_overview.pptx
+
+# Python bytecode (hub tools)
+__pycache__/

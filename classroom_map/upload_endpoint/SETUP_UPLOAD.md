@@ -44,15 +44,43 @@ Commit and push — GitHub Pages redeploys, and the Data screen now shows
 
 ## 4. Lab day
 
-- Students tap **Send to class** whenever they like. The app sends *all* of
-  their readings every time and reports what the server said ("42 readings
-  received"). Re-sending is harmless — the sheet skips rows it already has
-  (and Home Base dedups by UID anyway).
-- Watch the rows arrive in the sheet live during the lab if you want.
+- **"Send to class" is the primary path; email/AirDrop is the backup.**
+  Brief the class in one line: *tap Send to class whenever you like; if it
+  fails, use Send to instructor; after editing a reading, just re-send.*
+- The app sends *all* readings every time and reports what the server said
+  ("42 readings received"). Re-sending is harmless: unchanged rows are
+  skipped, and an **edited reading overwrites its earlier copy** (last
+  write wins), so corrections propagate. The app's confirmation counts
+  *new* rows — a re-send after an edit may say "already all there", but the
+  sheet has the corrected values (its RECEIVED_AT column shows when each
+  row last arrived).
+- **Wifi first:** phones roaming on foreign SIMs route data through the
+  home carrier — for Chinese SIMs, Google can be unreachable even on
+  campus. Get everyone onto campus wifi before they send; anyone still
+  stuck uses the email backup.
+- Watch the rows arrive in the sheet live during the lab — chase missing
+  groups while everyone is still on campus.
 - For the debrief: **File → Download → Comma Separated Values (.csv)** on
-  the `readings` sheet, drop that one file into `classroom_map/csvs/`
-  alongside any emailed CSVs, and run Home Base as usual. Overlap between
-  uploaded and emailed data is deduplicated automatically.
+  the `readings` sheet, drop that file into `classroom_map/csvs/` alongside
+  any emailed CSVs, and run Home Base as usual — **any filename is fine**.
+  Home Base recognises the sheet download by its RECEIVED_AT column and,
+  where an uploaded and an emailed copy of the same reading differ, lets
+  the emailed export win (it is the end-of-lab snapshot).
+- **Afterwards: transit, not storage.** Once the CSV is downloaded, delete
+  the rows (or the whole spreadsheet). Nothing about the class needs to
+  persist on the Google account past the debrief.
+
+## Rollback
+
+Three independent fallback layers, cheapest first:
+
+1. **Turn the feature off:** set `"UPLOAD_URL": ""` in `deploy.config.json`
+   and push. The site rebuilds to exactly the lab-2 behaviour — no "Send to
+   class" button, the sterner WeChat warning — and nothing else changes.
+   Data already on student phones is unaffected.
+2. **Home Base:** `home_base_v2.py` (beside `home_base.py`) is the frozen
+   lab-2 dashboard tool — run it the same way if the new one misbehaves.
+3. **Whole repo:** git tag `v2.0-lab2` is the complete lab-2 code state.
 
 ## Notes
 
@@ -61,7 +89,8 @@ Commit and push — GitHub Pages redeploys, and the Data screen now shows
   the live URL — versions are pinned.)
 - **Privacy:** the sheet holds GPS tracks and student-typed group names.
   It lives on your Google account, visible only to you; treat it like the
-  `csvs/` folder (keep it off shared drives, clear it after the term). The
+  `csvs/` folder (keep it off shared drives, and delete it once the debrief
+  CSV is downloaded — see Lab day above). The
   upload URL is public-but-unguessable; anyone who has it could add rows,
   which for classroom purposes is an acceptable trade for zero-friction
   uploads — clear obviously-junk rows in the sheet if they ever appear.
