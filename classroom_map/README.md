@@ -63,8 +63,11 @@ tiles need internet (classroom wifi); everything else is embedded.
 > `run_windows.bat` finds a standard Anaconda install on its own.
 
 ## Each lab
-1. Put every group's exported CSV into the **`csvs/`** folder (any filenames).
-   Re-importing the same file is harmless — rows are de-duplicated by `UID`.
+1. Put every group's exported CSV into the **`csvs/`** folder (any filenames),
+   plus the "Send to class" sheet download if you use one-tap uploads
+   (`upload_endpoint/SETUP_UPLOAD.md`). Re-importing the same file is
+   harmless — rows are de-duplicated by `UID`, and where an uploaded and an
+   emailed copy of the same reading differ, the emailed export wins.
 2. Run it:
    - **Windows:** double-click `run_windows.bat`
    - **Mac:** double-click `run_mac.command` (first time: right-click → Open)
@@ -90,6 +93,8 @@ python home_base.py sample_csvs
 | File | Purpose |
 |------|---------|
 | `home_base.py` | reads CSVs → writes `classroom_dashboard.html` |
+| `home_base_v2.py` | **frozen lab-2 fallback** — run the same way if `home_base.py` misbehaves |
+| `upload_endpoint/` | optional "Send to class" receiver (Apps Script) + `SETUP_UPLOAD.md` |
 | `build_map.py` | **v1 reference** — the same four views as separate HTML files (`classroom_map/heatmap/stats/interpolated.html`), kept unchanged; also has optional kaleido PNG/PDF export |
 | `make_sample_data.py` | generates synthetic UTSC data for testing |
 | `csvs/` | drop the groups' real CSV exports here |

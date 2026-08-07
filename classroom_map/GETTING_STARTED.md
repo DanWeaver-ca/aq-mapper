@@ -73,12 +73,17 @@ them. If that works, you are ready for lab day.
 
 ## 3. Lab day
 
-1. **Collect the CSVs.** Each group taps **"Send to instructor"** on the
-   app's Data screen and AirDrops or emails you a file named like
+1. **Collect the readings.** Groups using the app's **"Send to class"**
+   button land straight in your Google Sheet (one-time setup:
+   `upload_endpoint/SETUP_UPLOAD.md`) — at the debrief, download it once
+   via **File → Download → .csv**. Groups using the backup tap **"Send to
+   instructor"** and AirDrop or email you a file named like
    `aq_UTSC-AQMS-07_20260716_143022.csv`.
-2. **Drop every file into the `csvs/` folder.** Filenames don't matter.
-   Adding the same file twice is harmless — readings are de-duplicated
-   automatically.
+2. **Drop every file into the `csvs/` folder** — the sheet download and
+   emailed files together. Filenames don't matter. Duplicates are harmless:
+   readings are de-duplicated automatically, and if an uploaded and an
+   emailed copy of the same reading differ, the emailed file (the
+   end-of-lab snapshot) wins.
 3. **Double-click the launcher.** The dashboard opens; put the browser
    window on the projector (F11 = full screen on Windows).
 
@@ -128,6 +133,10 @@ needed only for the map's background tiles.
 typed. Keep the `csvs/` folder off shared drives and out of any public repo
 (in this repository it is already gitignored).
 
+**Between classes:** empty the `csvs/` folder so old groups don't appear in
+the next class's dashboard. To keep old files, tuck them into a subfolder
+(e.g. `csvs/archive_2026-06/`) — only CSVs directly in `csvs/` are read.
+
 ## 6. Troubleshooting
 
 | If you see… | Do this |
@@ -149,6 +158,7 @@ typed. Keep the `csvs/` folder off shared drives and out of any public repo
 | File | What it is |
 |---|---|
 | `home_base.py` | builds `classroom_dashboard.html` from a folder of CSVs |
+| `home_base_v2.py` | frozen lab-2 copy — the fallback if `home_base.py` misbehaves (run it the same way) |
 | `run_windows.bat` / `run_mac.command` | double-click: build + open |
 | `csvs/` | drop the class's CSV files here |
 | `sample_csvs/` · `make_sample_data.py` | bundled fake class · regenerate it |
