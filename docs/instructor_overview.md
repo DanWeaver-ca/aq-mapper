@@ -61,7 +61,7 @@ One repo, two products, one config file:
 | 2026-07-22 | **Lab 2** (tag **`v2.0-lab2`**) | Send failure persisted: students with **no email account**, and QR opened **inside WeChat** (webview can't share/save files; separate storage sandbox) |
 | 2026-07-24 | **v3 / app 2.0.0** built | "Send to class" one-tap upload (Apps Script→Sheet), bilingual WeChat interceptor, campus-POI layer — all config-gated OFF |
 | 2026-08-07 | **Activation** (reviewed by a second model before execution) | Decision: upload **primary**, email **backup**. Power Automate ruled out (no app/licence on the U of T account); Google framed as *transit, not storage* (sheet deleted after each debrief). Endpoint made last-write-wins (edits propagate); Home Base duplicate-UID precedence (latest email > earlier email > sheet download, keyed on the RECEIVED_AT column); `home_base_v2.py` frozen fallback. **Full rehearsal passed** (phone→sheet, edit-overwrite, real Google download→dashboard on Mac AND on the lab-day Windows laptop, rebuilt from repo ZIP). Tag **`v3.0-lab3`** |
-| ~2026-08-10 | **Lab 3** | **Upload fixed the send failure** — data arrived smoothly via "Send to class". Unprompted bonus: groups re-sent regularly all afternoon, so the sheet doubled as a **live progress tracker** (the "live dashboard" goal, met by the sheet alone — the idempotent-resend design shaping student behaviour). *[fill in: groups arrived / expected; any in-WeChat uploads (the one untested path)? junk rows? wifi issues? email backup used at all?]* |
+| ~2026-08-10 | **Lab 3** | **ALL groups' data arrived — the send failure is closed, by two changes at once.** The tech ("Send to class" primary), *and* a **redesigned pre-lab session**: 1-page reference sheet (rev4) picked up at the door → instrument sign-out → guided sensor setup to the all-values screen → app session setup → **first measurement taken and submitted together in the classroom** → TAs circulating → **the Google Sheet projected live**, so each group *watched their own row arrive* before leaving. Every group walked out with a proven pipeline. Groups then re-sent regularly all afternoon — the sheet doubled as a **live progress tracker** (the "live dashboard" goal met by the sheet alone; the idempotent-resend design shaping behaviour). **In-WeChat uploads: none observed** (path stays field-untested; camera-scan briefing + overlay steering held). **Junk: one row** — a group re-submitted a reading with blank values + a location note; hand-deleted in the sheet (new UID, so last-write-wins correctly didn't overwrite; the "instructor eyeballs" layer doing its job). **Backup earned its keep: 2 groups** hit field connectivity trouble → email, and AirDrop-to-TA on return (TA emailed it on). Pre-lab artifacts (ref sheet rev4, app-overview deck, Temtop-device deck) live in the OneDrive teaching folder, not this repo |
 | 2026-08-12 | **Season close-out** | Endpoint lifecycle ends with the event: UPLOAD_URL blanked in config (pushed); Apps Script deployment archived + sheet deleted (manual, on the project Google account). Pattern documented in SETUP_UPLOAD.md "Closing up": per-event deployment, **secured by lifetime, not secrecy** (the URL ships in a public bundle — it can never be a secret; committed URLs in git history are fossils pointing at archived deployments) |
 
 That last row is the paper's missing data point. The arc — *email fails →
@@ -131,9 +131,14 @@ git tag -l                                   # v1.0.0, v2.0-lab2, v3.0-lab3
 
 ## 8. Open threads (deliberately not done)
 
-- **WeChat in-webview upload**: never tested in real WeChat — lab 3 is the
-  field test. The overlay steering students *out* of WeChat works
-  regardless; email remains the backup.
+- **WeChat in-webview upload**: still never exercised in real WeChat — none
+  observed at lab 3 (the camera-scan briefing + overlay steering kept
+  everyone in real browsers, which is the better outcome anyway). For the
+  paper: claim the *steering* worked; do NOT claim in-WeChat upload works.
+- **All-blank readings**: lab 3 produced one submitted reading with no
+  sensor values, only a location note. Consider a soft "save anyway?"
+  warning when every sensor field is empty (fits the existing hard/soft
+  validation pattern; no schema change).
 - Campus POI layer (`campus_pois.geojson`): built, never drawn/deployed.
 - Live LAN/Dash Home Base with auto-refreshing checklist (the v2.0 dream);
   the upload code path was designed to point at a LAN endpoint someday.
