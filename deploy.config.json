@@ -11,5 +11,5 @@
   "SENSOR_NAME": "Temtop",
   "APP_URL": "https://danweaver-ca.github.io/aq-mapper/",
   "TILES_BBOX": "43.776,43.793,-79.198,-79.176",
-  "UPLOAD_URL": "https://script.google.com/macros/s/AKfycbwg2giVl54vNWl3S4nFItsDrJueX4y4DzaZ3PA8HKxX6cnJh3DFhhN8_1sZnFg8FWQbxg/exec"
+  "UPLOAD_URL": ""
 }

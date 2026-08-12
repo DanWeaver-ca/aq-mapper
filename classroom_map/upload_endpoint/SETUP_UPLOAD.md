@@ -66,9 +66,36 @@ Commit and push — GitHub Pages redeploys, and the Data screen now shows
   Home Base recognises the sheet download by its RECEIVED_AT column and,
   where an uploaded and an emailed copy of the same reading differ, lets
   the emailed export win (it is the end-of-lab snapshot).
-- **Afterwards: transit, not storage.** Once the CSV is downloaded, delete
-  the rows (or the whole spreadsheet). Nothing about the class needs to
-  persist on the Google account past the debrief.
+- **Afterwards:** close the window — see **Closing up after the lab**
+  below.
+
+## Closing up after the lab (the endpoint's whole lifecycle)
+
+The upload URL ships inside the public app bundle and the public config
+file, so it is never a secret — anyone who ever loads the site can read it,
+and git history keeps every URL ever committed. That is fine, because the
+endpoint is **secured by lifetime, not secrecy**: it only exists during the
+event. Close the window as soon as the debrief CSV is downloaded:
+
+1. **Archive the deployment** — Apps Script editor → **Deploy → Manage
+   deployments → Archive**. The `/exec` URL goes dead instantly. This is
+   the real off-switch; the *Sheet's* sharing settings are irrelevant (it
+   was never shared — the script writes as its owner).
+2. **Delete the spreadsheet** — transit, not storage: GPS tracks and
+   student-typed group names have no reason to persist past the debrief.
+3. **Blank the config** — `"UPLOAD_URL": ""` in deploy.config.json, push.
+   The button disappears from the app and the WeChat overlay returns to its
+   stern wording. URLs left behind in git history are harmless fossils —
+   they point at archived deployments.
+
+**Next lab is a fresh five-minute deployment** (Deploy → New deployment →
+new URL → paste into the config → push). One deployment per event. Junk
+uploads after the event are impossible because there is nothing left to
+upload to. Don't try to "protect" the URL with CI secrets, private repos,
+or history rewrites: a public client cannot keep a secret it must use, and
+the asset behind the URL — write-only rows in a junk-tolerant sheet on a
+throwaway account, readable by no one — is not worth more than its
+lifetime.
 
 ## Rollback
 

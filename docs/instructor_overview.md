@@ -46,7 +46,7 @@ One repo, two products, one config file:
 | Live app (the QR target) | https://danweaver-ca.github.io/aq-mapper/ |
 | Generic demo | https://danweaver-ca.github.io/aq-mapper/demo/ |
 | Repo (public) | https://github.com/DanWeaver-ca/aq-mapper |
-| Upload endpoint + sheet | **Dedicated project Google account** (created 2026-08-07 — credentials wherever you keep them; NOT in this repo). Sheet "AQ Mapper uploads", Apps Script deployed as web app; URL is `UPLOAD_URL` in deploy.config.json |
+| Upload endpoint + sheet | **Dedicated project Google account** (created 2026-08-07 — credentials wherever you keep them; NOT in this repo). Per-event lifecycle: deploy fresh each lab (`UPLOAD_URL` in deploy.config.json during the window), archive + delete after — see SETUP_UPLOAD.md "Closing up" |
 | Deployment | GitHub Actions → Pages on every push to main; builds TWICE (UTSC config at `/`, demo config at `/demo/`) |
 | Lab-day ops manual | `docs/lab_day_claude_context.md` — self-contained; paste into a claude.ai chat when away from this computer |
 
@@ -61,7 +61,8 @@ One repo, two products, one config file:
 | 2026-07-22 | **Lab 2** (tag **`v2.0-lab2`**) | Send failure persisted: students with **no email account**, and QR opened **inside WeChat** (webview can't share/save files; separate storage sandbox) |
 | 2026-07-24 | **v3 / app 2.0.0** built | "Send to class" one-tap upload (Apps Script→Sheet), bilingual WeChat interceptor, campus-POI layer — all config-gated OFF |
 | 2026-08-07 | **Activation** (reviewed by a second model before execution) | Decision: upload **primary**, email **backup**. Power Automate ruled out (no app/licence on the U of T account); Google framed as *transit, not storage* (sheet deleted after each debrief). Endpoint made last-write-wins (edits propagate); Home Base duplicate-UID precedence (latest email > earlier email > sheet download, keyed on the RECEIVED_AT column); `home_base_v2.py` frozen fallback. **Full rehearsal passed** (phone→sheet, edit-overwrite, real Google download→dashboard on Mac AND on the lab-day Windows laptop, rebuilt from repo ZIP). Tag **`v3.0-lab3`** |
-| ~2026-08-10 | **Lab 3** | *[fill in: did the upload fix the send failure? did anyone stay inside WeChat and upload successfully — the one untested path? junk rows? wifi issues?]* |
+| ~2026-08-10 | **Lab 3** | **Upload fixed the send failure** — data arrived smoothly via "Send to class". Unprompted bonus: groups re-sent regularly all afternoon, so the sheet doubled as a **live progress tracker** (the "live dashboard" goal, met by the sheet alone — the idempotent-resend design shaping student behaviour). *[fill in: groups arrived / expected; any in-WeChat uploads (the one untested path)? junk rows? wifi issues? email backup used at all?]* |
+| 2026-08-12 | **Season close-out** | Endpoint lifecycle ends with the event: UPLOAD_URL blanked in config (pushed); Apps Script deployment archived + sheet deleted (manual, on the project Google account). Pattern documented in SETUP_UPLOAD.md "Closing up": per-event deployment, **secured by lifetime, not secrecy** (the URL ships in a public bundle — it can never be a secret; committed URLs in git history are fossils pointing at archived deployments) |
 
 That last row is the paper's missing data point. The arc — *email fails →
 split send/save → still fails → remove the file from the transport
