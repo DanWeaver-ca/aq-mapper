@@ -1,6 +1,8 @@
-# Article draft — v0.1 (2026-07-16)
+# Article draft — v0.2 (2026-08-12)
 
-*Square brackets mark facts to fill in or confirm. Written venue-agnostic at ~1,900 words; trimming notes per venue are at the end. Figures listed after the body.*
+*Square brackets mark facts to fill in or confirm. Written venue-agnostic; trimming notes per venue are at the end. Figures listed after the body.*
+
+*v0.2: the story is complete — the three-run arc (half the class → half the class → **every group**) replaces the "version two in progress" ending; send-flow described as shipped; privacy-by-practice (team names) added; figure plan + venue notes updated. v0.1 was written after run 1 (2026-07-16).*
 
 ---
 
@@ -9,6 +11,7 @@
 1. **Mapping the Air We Breathe: A Phone-Based Air-Quality Field Lab**
 2. From Handheld Sensor to Class Map: An Air-Quality Field Activity with Nothing to Install
 3. Twenty-Five Dots on a Map: Teaching Measurement, Uncertainty, and Air Quality with Students' Own Phones
+4. Getting Every Group on the Map: Three Iterations of a Phone-Based Air-Quality Field Lab
 
 **Standfirst:** In one afternoon, visiting high-school students turn a university campus into a live air-quality dataset — using handheld sensors, the phones already in their pockets, and a pair of open-source tools that assemble everyone's measurements into a single interactive map for the debrief.
 
@@ -18,7 +21,7 @@
 
 On a July afternoon, small groups of high-school students fan out across the University of Toronto Scarborough (UTSC) campus. Each group carries a handheld air-quality monitor in one hand and a phone in the other. They pause at a loading dock, inside the food court, under the trees in the campus valley; they watch the monitor's numbers flicker, argue briefly about what "typical" means, and type a reading into a web app that quietly stamps it with GPS coordinates and the time. Ninety minutes later they are back in the lecture hall, and the whole afternoon condenses onto one projected map: every group's measurements, colour-coded by pollutant, assembled while they watched.
 
-This is the field component of Air Quality Science Day, a [one-day outreach event / program name] we run at UTSC for visiting high-school students [~N students in M groups — fill in]. The morning is a lecture on atmospheric structure, pollution sources, and how air quality is measured and modelled. The afternoon hands the students the instruments. This article describes the activity, the free and open-source software we built to run it, and what the first full class run taught us — including the failure that is shaping version two.
+This is the field component of Air Quality Science Day, a [one-day outreach event / program name] we run at UTSC for visiting high-school students [~N students in M groups — fill in]. The morning is a lecture on atmospheric structure, pollution sources, and how air quality is measured and modelled. The afternoon hands the students the instruments. This article describes the activity, the free and open-source software we built to run it, and what three class runs taught us — including a data-collection failure that took two software versions and one change of classroom protocol to close.
 
 ### Why air quality
 
@@ -40,13 +43,13 @@ Three design decisions carry the pedagogy:
 
 - **Offline-first.** Readings live in an on-device database, and the campus map tiles are pre-bundled with the app, so the map works in the field without wifi. GPS, of course, needs no connection at all.
 - **Uncertainty is a first-class field.** Every variable is entered as mean ± variability, mirroring the paper observation sheet. Sanity bounds catch impossible entries ("hard" limits block; "soft" limits ask *are you sure?* — a gentle introduction to quality control).
-- **Privacy by design.** The app collects no names and requires no sign-in. Measurements are tagged with a group code and a sensor ID, nothing else. For an activity involving minors, this mattered as much as any feature.
+- **Privacy by design — and by practice.** The app collects no names and requires no sign-in. Measurements are tagged with a group label and a sensor ID, nothing else. We brief groups to pick a team name rather than their own names; our cohorts have obliged with whimsy, which keeps the dataset non-identifying end-to-end. For an activity involving minors, this mattered as much as any feature.
 
 Students see their own map immediately: points colour-coded by any variable, with legend thresholds tied to health guidance, and a heatmap toggle. That instant feedback loop — measure, see your dot appear, decide where to go next — turns sampling strategy into a live decision rather than a worksheet afterthought.
 
 ### Home base: the class map
 
-The payoff is the debrief. Each group exports its data as a CSV file and sends it to the instructor; a small Python/Plotly tool on the instructor's laptop (we call it **home base**) merges every file, removes duplicates, and renders interactive maps that are projected to the class.
+The payoff is the debrief. Each group's data reaches the instructor — since version three by a one-tap **Send to class** upload, with CSV export by email or AirDrop kept as the fallback (the story of that evolution is below) — and a small Python/Plotly tool on the instructor's laptop (we call it **home base**) merges everything, removes duplicates, and renders interactive maps that are projected to the class.
 
 The reveal has a choreography. First one group's map: "Here's Group 24's afternoon." Then the merge: the full class dataset, [~250 — fill in] measurements wide. The dropdowns switch pollutants and filter indoor versus outdoor, and the room reliably supplies the narrative before I do: indoor CO₂ towers over outdoor (a ventilation tracer, not an outdoor pollutant), PM2.5 clusters near [roads / loading docks / construction — use your actual highlight], and someone always asks about the outlier, which is where the best conversations start. A summary panel shows indoor-vs-outdoor averages and a per-group table, so every group can find itself in the data.
 
@@ -54,11 +57,19 @@ Two display choices earn their keep pedagogically. Colour scales come in two mod
 
 The second is an **interpolated field**: a smooth estimated surface between the sample points, fading out where no one sampled, with the real measurements overlaid as dots. A dropdown widens the smoothing radius — tight, then wide — and the estimated coverage grows while the honesty of the estimate shrinks. This is, in miniature, the choice NASA's GISTEMP global temperature analysis makes with its 250 km versus 1200 km smoothing radius, and we show the students that parallel directly. Their eleven [fill in] points over a campus become a doorway into how the Arctic gets a temperature on a map few thermometers have ever touched. "If you were designing a monitoring network for a city, where would you put the sensors?" lands differently after you have watched your own data run out of coverage.
 
-### What the first run taught us
+### What three runs taught us
 
-The first full run [date, cohort size] worked: groups measured, the maps built, the discussion carried itself. GPS delivered a bonus lesson when [one phone with imprecise location settings placed its readings ~1.4 km off campus — confirm/replace with your example]: a visible, discussable data-quality failure, exactly the kind reference networks screen for.
+The first full run (July 2026, [cohort size]) worked: groups measured, the maps built, the discussion carried itself. GPS delivered a bonus lesson when [one phone with imprecise location settings placed its readings ~1.4 km off campus — confirm/replace with your example]: a visible, discussable data-quality failure, exactly the kind reference networks screen for.
 
-The honest failure was logistics: exporting a CSV and emailing it proved harder than measuring air. Between browser download quirks and attachment fumbles, **just over half the groups' files reached me** during the session. The lab survived — the maps were compelling with the data we had — but "where's the rest of the class?" is not a question you want a map to raise. Version two, in progress, replaces the export-and-email dance with a one-tap **Send to class** button (posting the data to a small collection endpoint, with the share-sheet and CSV export kept as fallbacks) and merges home base's several windows into a single dashboard with a live checklist of which groups have reported. The instrumentation lesson generalizes: the highest-risk component of a field campaign is rarely the sensor.
+The honest failure was logistics: exporting a CSV and emailing it proved harder than measuring air. Between browser download quirks and attachment fumbles, **just over half the groups' files reached me** during the session. The lab survived — the maps were compelling with the data we had — but "where's the rest of the class?" is not a question you want a map to raise.
+
+Our first fix was better plumbing on the same pipe: a dedicated send button invoking the phone's share sheet, a separate save-a-copy button, the instructor's address one tap from the clipboard. The second run promptly returned the same fraction — and revealed why. The obstacles were not interface friction but **assumptions about students' digital lives**: several groups had no email account to send *from*, and others had scanned the QR code with WeChat — the default reflex for our visiting cohort — leaving the app inside WeChat's built-in browser, which can neither share nor save files and keeps its own storage sandbox. Their data was collected, and stranded.
+
+Version three removed the file from the transport entirely. A one-tap **Send to class** button posts every reading to a small collection endpoint — a free Google Apps Script feeding a spreadsheet, five minutes to deploy on any instructor's account — and re-sending is always safe because rows deduplicate by ID. A bilingual overlay now intercepts WeChat's browser and walks students to "Open in Browser / 在浏览器打开" before they begin. The share-sheet and CSV paths stayed as fallbacks: new capabilities joined the old ones rather than replacing them. The endpoint itself is deliberately ephemeral — created for the event and archived after it, so the necessarily public upload URL is secured by its *lifetime* rather than by secrecy.
+
+Just as deliberately, the third run changed the classroom protocol alongside the software. Groups picked up the one-page reference sheet at the door, signed out instruments, and were walked to a working state: sensor on the right screen, app configured — and then **every group took and submitted its first measurement together, in the room, with the receiving spreadsheet projected live**. Each group watched its own row arrive before anyone left the building. TAs circulated; no group walked out without a proven pipeline.
+
+The result: **every group's data arrived.** Groups re-sent on their own throughout the afternoon — safe re-sending turned the projected sheet into a live progress tracker nobody had designed — and the fallbacks still earned their keep when two groups hit connectivity trouble in the field and delivered by email and by AirDrop to a TA on return. Quality control stayed human-scale: the one junk submission of the day (blank values, a location note) was caught by an instructor glancing at a 25-row spreadsheet. We changed the software and the protocol at once, so we cannot apportion the credit between them — the goal was a working lab, not a controlled experiment — but the shape of the lesson is clear, and it generalizes: the highest-risk component of a field campaign is rarely the sensor, and the fix for a data-return problem was half code, half choreography.
 
 ### What students practice
 
@@ -70,7 +81,7 @@ The honest failure was logistics: exporting a CSV and emailing it proved harder 
 
 ### Run it at your school
 
-Everything is open source (MIT): the student app runs at a public URL from any phone browser, and the whole system is two pieces — the Flutter app and a few hundred lines of commented Python for home base — designed so an instructor can maintain them. Rebranding for another campus is a one-file edit (title + default map coordinates); the repository includes the printable student handout, the lab observation sheet, and a synthetic-data generator so you can rehearse the entire flow, including the projected debrief, with zero hardware. Any handheld monitor works; ours cost about [$X] each, and phones are the ones already in the room.
+Everything is open source (MIT): the student app runs at a public URL from any phone browser, and the whole system is two pieces — the Flutter app and a few hundred lines of commented Python for home base — designed so an instructor can maintain them. Rebranding for another campus is a one-file edit (titles, coordinates, sensor IDs, and the optional upload endpoint); the one-tap upload needs only a free Google account and five minutes, and points of interest for the student map — TA stations, a stay-inside boundary — are drawn by clicking on geojson.io. The repository includes the printable student handout, the lab observation sheet, and a synthetic-data generator so you can rehearse the entire flow, including the projected debrief, with zero hardware. Any handheld monitor works; ours cost about [$X] each, and phones are the ones already in the room.
 
 Repository: **github.com/DanWeaver-ca/aq-mapper** · Live app: **danweaver-ca.github.io/aq-mapper**
 
@@ -80,11 +91,12 @@ Repository: **github.com/DanWeaver-ca/aq-mapper** · Live app: **danweaver-ca.gi
 
 ## Figure plan
 
-1. **The loop** (composite): phone entry screen with ± field → student map with legend → projected class map. *(Regenerate all screenshots from `make_sample_data.py` output — publish nothing student-derived.)*
+1. **The loop** (composite): phone entry screen with ± field → student map with legend → projected class map. *(Default rule: regenerate all screenshots from `make_sample_data.py` output — publish nothing student-derived. **Pending decision (2026-08-12):** the run-3 dataset appears genuinely non-identifying — pseudonymous team names, no sign-ins — so, conditional on a final skim of the NOTES column, real-data figures and a Zenodo-DOI'd dataset supplement become an option; whimsical group names would be charming in print. Decide before figure work starts.)*
 2. **Health bands vs spread** side-by-side of the same PM2.5 data — the colour-scale lesson in one image.
 3. **Interpolated field, tight vs wide radius** side-by-side, with the GISTEMP parallel in the caption.
 4. **Stats panel** (indoor vs outdoor CO₂ bars + per-group table).
 5. *(Optional)* Photo of a group measuring in the field — requires consent/guardian release; the sample-data screenshots carry the piece if photos are unavailable.
+6. *(Optional, CSL/JOSE more than TPT)* The bilingual WeChat interceptor overlay — regenerable with zero student data (`?simulate=wechat` in any browser); one image that tells the whole meet-students-where-they-are story.
 
 ---
 
@@ -100,6 +112,8 @@ Repository: **github.com/DanWeaver-ca/aq-mapper** · Live app: **danweaver-ca.gi
 | **JOSE** (Journal of Open Source Education) — *parallel software track* | Educators who adopt open-source teaching software | Submits the *repo*, not this draft: short paper.md kept in-repo + open review on GitHub; no fees | The adoptable system: one-file rebrand (SETUP.md), zero-hardware rehearsal via sample data, tests/CI, privacy design |
 
 **Recommendation (2026-07-18):** *The Physics Teacher* first for this draft, *Connected Science Learning* second, one education submission at a time; **JOSE in parallel** once the polish round lands. Archive the repo with a Zenodo DOI at submission time so both papers cite a frozen version.
+
+**Update (2026-08-12, v0.2):** the story is complete — the arc now ends at *every group arrived* (run 3), which strengthens the TPT pitch (a resolved iteration story, not a work-in-progress). Costs ~300 words over v0.1; if TPT's budget pinches, trim first from "Why air quality" ¶1 and the standfirst, not from the three-run section — the arc *is* the article. Two framing disciplines for all venues: (1) claim that the WeChat *steering* worked (zero WeChat incidents in run 3 vs. many in run 2) — do **not** claim uploads from inside WeChat work; that path was never exercised. (2) The run-3 success confounds software and protocol *by design* — say so plainly; reviewers respect it, and "half code, half choreography" is the transferable finding. For the JOSE paper.md: carry over the secured-by-lifetime endpoint paragraph and the per-event deployment lifecycle (SETUP_UPLOAD.md "Closing up") — it is the reviewable answer to "how does an adopter run this safely?", and the privacy-by-practice team-name briefing belongs in the same section.
 
 **Reaching the atmospheric-science community** (where the demand was voiced): none of the journals above reach them. Ask the TA which meeting/session the discussion happened in and match the outlet — *BAMS* publishes education/community-engagement articles (e.g. the 2025 NCAR field-campaign education paper, BAMS-D-24-0315.1), an *Eos* project update is lighter-weight, and a talk in an AGU/AMS/CMOS education session (which the TA could give) puts the live URL in front of the right room. All complementary to, not competing with, the activity paper.
 
