@@ -43,3 +43,7 @@ lab_documents/Temtop sensor/Temptop_device_overview.pptx
 
 # Python bytecode (hub tools)
 __pycache__/
+
+# Real student measurement data — NEVER commit (public repo). Lives on disk
+# and in Dan's backups only; per-run folders feed analysis + paper figures.
+student_measurements_2026/
