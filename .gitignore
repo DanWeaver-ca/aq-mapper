@@ -47,3 +47,5 @@ __pycache__/
 # Real student measurement data — NEVER commit (public repo). Lives on disk
 # and in Dan's backups only; per-run folders feed analysis + paper figures.
 student_measurements_2026/
+docs/figures/_tile_cache/
+docs/figures/*.png
